@@ -1,0 +1,9 @@
+*.dblite
+*.pdb
+*.obj
+*.import
+*.ilk
+*.dll
+*.exe
+*.lib
+*.exp
