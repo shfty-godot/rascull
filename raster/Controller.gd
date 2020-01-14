@@ -19,15 +19,12 @@ func _physics_process(delta) -> void:
 	translation += Vector3.UP * wish_vec.y * delta * 2.0
 	translation += global_transform.basis.z * wish_vec.z * delta * 2.0
 
-	if not mouse_held:
-		return
-
 	rotation = Vector3.ZERO
 	rotate(Vector3.UP, yaw)
 	rotate(global_transform.basis.x.normalized(), pitch)
 
 func _input(event: InputEvent) -> void:
-	if event is InputEventMouseMotion:
+	if event is InputEventMouseMotion and Input.is_mouse_button_pressed(2):
 		yaw -= event.relative.x * 0.0015
 		pitch -= event.relative.y * 0.0015
 		pitch = clamp(pitch, deg2rad(-80), deg2rad(80))
