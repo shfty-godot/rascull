@@ -1,10 +1,11 @@
-[gd_scene load_steps=8 format=2]
+[gd_scene load_steps=10 format=2]
 
 [ext_resource path="res://Rasterizer.gd" type="Script" id=1]
 [ext_resource path="res://Controller.gd" type="Script" id=2]
 [ext_resource path="res://CullingCamera.gd" type="Script" id=3]
-[ext_resource path="res://RasterVisualizer.gd" type="Script" id=4]
-[ext_resource path="res://ProfilerLabel.gd" type="Script" id=5]
+[ext_resource path="res://TriangleMesh.gd" type="Script" id=4]
+[ext_resource path="res://RasterVisualizer.gd" type="Script" id=5]
+[ext_resource path="res://ProfilerLabel.gd" type="Script" id=6]
 
 [sub_resource type="CylinderMesh" id=1]
 top_radius = 0.5
@@ -12,6 +13,19 @@ bottom_radius = 0.5
 height = 1.0
 radial_segments = 8
 rings = 1
+
+[sub_resource type="ArrayMesh" id=3]
+surfaces/0 = {
+"aabb": AABB( -0.5, -0.5, 0, 1, 1.00001, 1e-005 ),
+"array_data": PoolByteArray( 0, 0, 0, 191, 0, 0, 0, 63, 0, 0, 0, 0, 0, 0, 0, 63, 0, 0, 0, 63, 0, 0, 0, 0, 0, 0, 0, 191, 0, 0, 0, 191, 0, 0, 0, 0 ),
+"array_index_data": PoolByteArray(  ),
+"blend_shape_data": [  ],
+"format": 97281,
+"index_count": 0,
+"primitive": 4,
+"skeleton_aabb": [  ],
+"vertex_count": 3
+}
 
 [sub_resource type="PlaneMesh" id=2]
 size = Vector2( 1, 1 )
@@ -28,17 +42,29 @@ script = ExtResource( 2 )
 near = 0.01
 far = 10.0
 script = ExtResource( 3 )
-cull_root_path = NodePath("../../CullRoot")
+cull_root_path = NodePath("../../Meshes")
 
-[node name="CullRoot" type="Spatial" parent="."]
+[node name="Meshes" type="Spatial" parent="."]
 
-[node name="MeshInstance" type="MeshInstance" parent="CullRoot"]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -1.06094, 0, -2 )
+[node name="CylinderMesh" type="MeshInstance" parent="Meshes" groups=[
+"rasterize",
+]]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -2.06094, 0, -2 )
 mesh = SubResource( 1 )
 material/0 = null
 
-[node name="MeshInstance2" type="MeshInstance" parent="CullRoot"]
-transform = Transform( 1, 0, 0, 0, -4.37114e-008, -1, 0, 1, -4.37114e-008, 1.00142, 0, -2 )
+[node name="TriangleMesh" type="MeshInstance" parent="Meshes" groups=[
+"rasterize",
+]]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -2 )
+mesh = SubResource( 3 )
+material/0 = null
+script = ExtResource( 4 )
+
+[node name="PlaneMesh" type="MeshInstance" parent="Meshes" groups=[
+"rasterize",
+]]
+transform = Transform( 1, 0, 0, 0, -4.37114e-008, -1, 0, 1, -4.37114e-008, 2.00142, 0, -2 )
 mesh = SubResource( 2 )
 material/0 = null
 
@@ -52,11 +78,11 @@ margin_top = 446.0
 margin_right = 999.0
 margin_bottom = 574.0
 rect_min_size = Vector2( 256, 128 )
-script = ExtResource( 4 )
+script = ExtResource( 5 )
 
 [node name="Panel" type="Panel" parent="UI"]
 margin_right = 338.0
-margin_bottom = 187.0
+margin_bottom = 106.0
 
 [node name="ProfilerLabel" type="Label" parent="UI/Panel"]
 anchor_right = 1.0
@@ -68,7 +94,7 @@ margin_bottom = -10.0
 rect_min_size = Vector2( 256, 128 )
 size_flags_horizontal = 3
 size_flags_vertical = 3
-script = ExtResource( 5 )
+script = ExtResource( 6 )
 
 [node name="VBoxContainer" type="VBoxContainer" parent="UI"]
 margin_left = 40.0
