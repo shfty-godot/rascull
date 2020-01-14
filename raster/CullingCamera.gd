@@ -17,17 +17,16 @@ func _process(delta) -> void:
 	var vertices: PoolVector3Array = gather_vertices()
 
 	var view_vertices: PoolVector3Array = verts_to_view_space(vertices)
-	var clip_vertices_depths: Array = verts_to_clip_space(view_vertices)
+	var front_face_vertices: PoolVector3Array = cull_backfaces(view_vertices)
+	var clip_vertices_depths: Array = verts_to_clip_space(front_face_vertices)
 
 	var clip_vertices = PoolVector3Array()
 	var clip_depths = PoolRealArray()
-
 	for cvd in clip_vertices_depths:
 		clip_vertices.append(cvd[0])
 		clip_depths.append(cvd[1])
 
-	var front_face_vertices: PoolVector3Array = cull_backfaces(clip_vertices)
-	var clipped_vertices: PoolVector3Array = clip_verts(front_face_vertices, clip_depths)
+	var clipped_vertices: PoolVector3Array = clip_verts(clip_vertices, clip_depths)
 	var screen_vertices: PoolVector2Array = verts_to_screen_space(clipped_vertices)
 
 	emit_signal("render_triangles", screen_vertices)
@@ -106,7 +105,7 @@ func cull_backfaces(vertices: PoolVector3Array) -> PoolVector3Array:
 		var v2 = vertices[tri_idx + 2]
 
 		var dot = v0.cross(v1).dot((v2 - v0).normalized())
-		if dot < 0:
+		if dot > 0:
 			front_face_vertices.append(v0)
 			front_face_vertices.append(v1)
 			front_face_vertices.append(v2)
