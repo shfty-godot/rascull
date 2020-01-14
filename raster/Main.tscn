@@ -25,10 +25,22 @@ script = ExtResource( 1 )
 script = ExtResource( 2 )
 
 [node name="CullingCamera" type="Camera" parent="Controller"]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.794795 )
-keep_aspect = 0
+near = 0.01
+far = 10.0
 script = ExtResource( 3 )
 cull_root_path = NodePath("../../CullRoot")
+
+[node name="CullRoot" type="Spatial" parent="."]
+
+[node name="MeshInstance" type="MeshInstance" parent="CullRoot"]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -1.06094, 0, -2 )
+mesh = SubResource( 1 )
+material/0 = null
+
+[node name="MeshInstance2" type="MeshInstance" parent="CullRoot"]
+transform = Transform( 1, 0, 0, 0, -4.37114e-008, -1, 0, 1, -4.37114e-008, 1.00142, 0, -2 )
+mesh = SubResource( 2 )
+material/0 = null
 
 [node name="UI" type="Control" parent="."]
 anchor_right = 1.0
@@ -58,17 +70,91 @@ size_flags_horizontal = 3
 size_flags_vertical = 3
 script = ExtResource( 5 )
 
-[node name="CullRoot" type="Spatial" parent="."]
+[node name="VBoxContainer" type="VBoxContainer" parent="UI"]
+margin_left = 40.0
+margin_top = 500.0
+margin_right = 400.0
 
-[node name="MeshInstance" type="MeshInstance" parent="CullRoot"]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -1.06094, 0, -2 )
-mesh = SubResource( 1 )
-material/0 = null
+[node name="HBoxContainer" type="HBoxContainer" parent="UI/VBoxContainer"]
+margin_right = 360.0
+margin_bottom = 16.0
 
-[node name="MeshInstance2" type="MeshInstance" parent="CullRoot"]
-transform = Transform( 1, 0, 0, 0, -4.37114e-008, -1, 0, 1, -4.37114e-008, 1.00142, 0, -2 )
-mesh = SubResource( 2 )
-material/0 = null
+[node name="Label" type="Label" parent="UI/VBoxContainer/HBoxContainer"]
+margin_top = 1.0
+margin_right = 50.0
+margin_bottom = 15.0
+rect_min_size = Vector2( 50, 0 )
+size_flags_horizontal = 9
+text = "FOV"
+
+[node name="FOVSlider" type="HSlider" parent="UI/VBoxContainer/HBoxContainer"]
+margin_left = 54.0
+margin_right = 360.0
+margin_bottom = 16.0
+size_flags_horizontal = 11
+size_flags_vertical = 3
+min_value = 50.0
+max_value = 110.0
+value = 70.0
+rounded = true
+tick_count = 6
+ticks_on_borders = true
+
+[node name="HBoxContainer2" type="HBoxContainer" parent="UI/VBoxContainer"]
+margin_top = 20.0
+margin_right = 360.0
+margin_bottom = 36.0
+
+[node name="Label" type="Label" parent="UI/VBoxContainer/HBoxContainer2"]
+margin_top = 1.0
+margin_right = 50.0
+margin_bottom = 15.0
+rect_min_size = Vector2( 50, 0 )
+size_flags_horizontal = 9
+text = "Z Near"
+
+[node name="NearPlaneSlider" type="HSlider" parent="UI/VBoxContainer/HBoxContainer2"]
+margin_left = 54.0
+margin_right = 360.0
+margin_bottom = 16.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+max_value = 10.0
+step = 0.01
+value = 0.01
+tick_count = 200
+ticks_on_borders = true
+
+[node name="HBoxContainer3" type="HBoxContainer" parent="UI/VBoxContainer"]
+margin_top = 40.0
+margin_right = 360.0
+margin_bottom = 56.0
+
+[node name="Label" type="Label" parent="UI/VBoxContainer/HBoxContainer3"]
+margin_top = 1.0
+margin_right = 50.0
+margin_bottom = 15.0
+rect_min_size = Vector2( 50, 0 )
+size_flags_horizontal = 9
+text = "Z Far"
+
+[node name="FarPlaneSlider" type="HSlider" parent="UI/VBoxContainer/HBoxContainer3"]
+margin_left = 54.0
+margin_right = 360.0
+margin_bottom = 16.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+max_value = 10.0
+step = 0.01
+value = 10.0
+tick_count = 200
+ticks_on_borders = true
 [connection signal="profile_timestamps" from="Rasterizer" to="UI/Panel/ProfilerLabel" method="update_profiler"]
 [connection signal="rasterize_complete" from="Rasterizer" to="UI/RasterVisualizer" method="render"]
 [connection signal="render_triangles" from="Controller/CullingCamera" to="Rasterizer" method="rasterize"]
+[connection signal="value_changed" from="UI/VBoxContainer/HBoxContainer/FOVSlider" to="Controller/CullingCamera" method="set_fov"]
+[connection signal="value_changed" from="UI/VBoxContainer/HBoxContainer/FOVSlider" to="Controller/CullingCamera" method="update_projection"]
+[connection signal="value_changed" from="UI/VBoxContainer/HBoxContainer2/NearPlaneSlider" to="Controller/CullingCamera" method="set_znear"]
+[connection signal="value_changed" from="UI/VBoxContainer/HBoxContainer2/NearPlaneSlider" to="Controller/CullingCamera" method="update_projection"]
+[connection signal="value_changed" from="UI/VBoxContainer/HBoxContainer3/FarPlaneSlider" to="Controller/CullingCamera" method="set_zfar"]
+[connection signal="value_changed" from="UI/VBoxContainer/HBoxContainer3/FarPlaneSlider" to="Controller/CullingCamera" method="update_projection"]
