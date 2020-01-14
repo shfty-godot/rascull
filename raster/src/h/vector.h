@@ -5,11 +5,16 @@
 
 #include "lib_raster.h"
 
-#define VEC2_OP(tn, on, op)                           \
-    inline tn tn##_##on(const tn lhs, const tn rhs)   \
-    {                                                 \
-        tn result = {lhs.x op rhs.x, lhs.y op rhs.y}; \
-        return result;                                \
+#define VEC2_OP(tn, on, op)                                    \
+    inline tn tn##_##on(const tn lhs, const tn rhs)            \
+    {                                                          \
+        tn result = {lhs.x op rhs.x, lhs.y op rhs.y};          \
+        return result;                                         \
+    };                                                         \
+    inline tn tn##_##on##_float(const tn lhs, const float rhs) \
+    {                                                          \
+        tn result = {lhs.x op rhs, lhs.y op rhs};              \
+        return result;                                         \
     };
 
 #define VEC2_FROM_GVEC2(tn, t)                                                          \
@@ -36,6 +41,11 @@
     inline tn tn##_##on(const tn lhs, const tn rhs)                   \
     {                                                                 \
         tn result = {lhs.x op rhs.x, lhs.y op rhs.y, lhs.z op rhs.z}; \
+        return result;                                                \
+    };                                                                \
+    inline tn tn##_##on##_float(const tn lhs, const float rhs)        \
+    {                                                                 \
+        tn result = {lhs.x op rhs, lhs.y op rhs, lhs.z op rhs};       \
         return result;                                                \
     };
 
@@ -69,6 +79,11 @@
     {                                                                                 \
         tn result = {lhs.x op rhs.x, lhs.y op rhs.y, lhs.z op rhs.z, lhs.w op rhs.w}; \
         return result;                                                                \
+    };                                                                                \
+    inline tn tn##_##on##_float(const tn lhs, const float rhs)                        \
+    {                                                                                 \
+        tn result = {lhs.x op rhs, lhs.y op rhs, lhs.z op rhs, lhs.w op rhs};         \
+        return result;                                                                \
     };
 
 #define VEC4(n, t)     \
@@ -92,5 +107,10 @@ VEC4(ivec4, int)
 VEC2(fvec2, float)
 VEC3(fvec3, float)
 VEC4(fvec4, float)
+
+float fvec3_dot(fvec3 lhs, fvec3 rhs)
+{
+    return lhs.x * rhs.x + lhs.y * rhs.y + lhs.z * rhs.z;
+}
 
 #endif

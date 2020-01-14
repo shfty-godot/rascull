@@ -75,6 +75,13 @@ void GDN_EXPORT godot_nativescript_init(void *p_handle)
     nativescript_api->godot_nativescript_register_method(p_handle, "Simple", "bresenham_triangle",
                                                          attributes, bresenham_triangle);
 
+    // bresenham_triangles
+    godot_instance_method bresenham_triangles = {NULL, NULL, NULL};
+    bresenham_triangles.method = &raster_bresenham_triangles;
+
+    nativescript_api->godot_nativescript_register_method(p_handle, "Simple", "bresenham_triangles",
+                                                         attributes, bresenham_triangles);
+
     // rasterize_triangles
     godot_instance_method rasterize_triangles = {NULL, NULL, NULL};
     rasterize_triangles.method = &raster_rasterize_triangles;

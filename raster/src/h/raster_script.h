@@ -18,6 +18,9 @@ godot_variant raster_bresenham_line(godot_object *p_instance, void *p_method_dat
 godot_variant raster_bresenham_triangle(godot_object *p_instance, void *p_method_data,
                                         void *p_user_data, int p_num_args, godot_variant **p_args);
 
+godot_variant raster_bresenham_triangles(godot_object *p_instance, void *p_method_data,
+                                         void *p_user_data, int p_num_args, godot_variant **p_args);
+
 godot_variant raster_rasterize_triangles(godot_object *p_instance, void *p_method_data,
                                          void *p_user_data, int p_num_args, godot_variant **p_args);
 

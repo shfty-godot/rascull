@@ -92,7 +92,7 @@ godot_variant raster_bresenham_triangle(godot_object *p_instance, void *p_method
     return null_ret;
 }
 
-godot_variant raster_rasterize_triangles(godot_object *p_instance, void *p_method_data,
+godot_variant raster_bresenham_triangles(godot_object *p_instance, void *p_method_data,
                                          void *p_user_data, int p_num_args, godot_variant **p_args)
 {
     user_data_struct *user_data = (user_data_struct *)p_user_data;
@@ -106,6 +106,31 @@ godot_variant raster_rasterize_triangles(godot_object *p_instance, void *p_metho
     {
         godot_vector2 gv = api->godot_pool_vector2_array_get(&triangle_pool, i);
         triangles[i] = ivec2_from_godot_vector2(&gv);
+    }
+
+    bresenham_triangles(p_user_data, triangles, vertex_count);
+
+    free(triangles);
+
+    godot_variant null_ret;
+    api->godot_variant_new_nil(&null_ret);
+    return null_ret;
+}
+
+godot_variant raster_rasterize_triangles(godot_object *p_instance, void *p_method_data,
+                                         void *p_user_data, int p_num_args, godot_variant **p_args)
+{
+    user_data_struct *user_data = (user_data_struct *)p_user_data;
+
+    godot_pool_vector3_array triangle_pool = api->godot_variant_as_pool_vector3_array(p_args[0]);
+    int vertex_count = api->godot_pool_vector3_array_size(&triangle_pool);
+
+    fvec3 *triangles = (fvec3 *)malloc(vertex_count * sizeof(fvec3));
+
+    for (int i = 0; i < vertex_count; ++i)
+    {
+        godot_vector3 gv = api->godot_pool_vector3_array_get(&triangle_pool, i);
+        triangles[i] = fvec3_from_godot_vector3(&gv);
     }
 
     rasterize_triangles(p_user_data, triangles, vertex_count);

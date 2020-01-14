@@ -5,7 +5,7 @@ signal profile_timestamps(timestamps)
 
 var timestamps = {}
 
-func rasterize(triangles: PoolVector2Array) -> void:
+func rasterize(triangles: PoolVector3Array) -> void:
 	var ts = OS.get_ticks_usec()
 
 	Raster.clear_depth_buffer()

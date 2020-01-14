@@ -144,7 +144,7 @@ int vertical_sort(const void *a, const void *b)
     return va->y - vb->y;
 }
 
-void rasterize_triangles(void *p_user_data, void *p_triangles, int vertex_count)
+void bresenham_triangles(void *p_user_data, void *p_triangles, int vertex_count)
 {
     ivec2 *triangles = (ivec2 *)p_triangles;
 
@@ -180,4 +180,38 @@ void rasterize_triangles(void *p_user_data, void *p_triangles, int vertex_count)
             bresenham_triangle(p_user_data, v2, v1, v3);
         }
     }
+}
+
+void rasterize_triangles(void *p_user_data, void *p_triangles, int vertex_count)
+{
+    fvec3 *clip_triangles = (fvec3 *)p_triangles;
+
+    // Clip triangles
+
+    // Perspective divide
+    for (int i = 0; i < vertex_count; ++i)
+    {
+        clip_triangles[i] = fvec3_div_float(clip_triangles[i], clip_triangles[i].z);
+    }
+
+    // Convert to screen space
+    ivec2 *screen_triangles = malloc(sizeof(ivec2) * vertex_count);
+    for (int i = 0; i < vertex_count; ++i)
+    {
+        fvec3 vertex = clip_triangles[i];
+        vertex.y *= -1.0f;
+
+        vertex.x += 1.0f;
+        vertex.y += 1.0f;
+
+        vertex.x *= 127.5f;
+        vertex.y *= 63.5f;
+
+        ivec2 screen_vertex = {(int)vertex.x, (int)vertex.y};
+        screen_triangles[i] = screen_vertex;
+    }
+
+    bresenham_triangles(p_user_data, screen_triangles, vertex_count);
+
+    free(screen_triangles);
 }

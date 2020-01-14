@@ -28,8 +28,7 @@ func _process(delta) -> void:
 		clip_depths.append(cvd[1])
 
 	var clipped_vertices: PoolVector3Array = clip_verts(clip_vertices, clip_depths)
-	var screen_vertices: PoolVector2Array = verts_to_screen_space(clipped_vertices)
-	emit_signal("render_triangles", screen_vertices)
+	emit_signal("render_triangles", clipped_vertices)
 
 func update_projection(ignore):
 	proj_mat = projection_matrix(get_fov(), get_viewport().size.x / get_viewport().size.y, 0, 1, get_keep_aspect_mode() == KEEP_WIDTH)
@@ -171,9 +170,9 @@ func clip_verts(vertices: PoolVector3Array, depths: PoolRealArray) -> PoolVector
 		clipped_poly = Geometry.clip_polygon(clipped_poly, Plane(Vector3(0, -1, -1), 0))
 
 		for clipped_vert_idx in range(1, clipped_poly.size() - 1):
-			clipped_vertices.append(clipped_poly[0] / clipped_poly[0].z)
-			clipped_vertices.append(clipped_poly[clipped_vert_idx] / clipped_poly[clipped_vert_idx].z)
-			clipped_vertices.append(clipped_poly[clipped_vert_idx + 1] / clipped_poly[clipped_vert_idx + 1].z)
+			clipped_vertices.append(clipped_poly[0])
+			clipped_vertices.append(clipped_poly[clipped_vert_idx])
+			clipped_vertices.append(clipped_poly[clipped_vert_idx + 1])
 
 	return clipped_vertices
 
