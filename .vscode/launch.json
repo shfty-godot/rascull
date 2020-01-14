@@ -5,6 +5,13 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "Launch",
+            "program": "C:/OtherPrograms/Godot/Godot_v3.1.2-stable_win64.exe",
+            "args": ["--path", "${workspaceRoot}/raster", "${workspaceRoot}/raster/Main.tscn"],
+            "type": "cppvsdbg",
+            "request": "launch"
+        },
+        {
             "name": "Attach",
             "type": "cppvsdbg",
             "request": "attach",
