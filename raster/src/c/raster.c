@@ -8,8 +8,7 @@
 #include <malloc.h>
 #include <stdlib.h>
 
-#define MAX(x, y) (((x) > (y)) ? (x) : (y))
-#define MIN(x, y) (((x) < (y)) ? (x) : (y))
+//#define WIREFRAME
 
 const ivec2 resolution = {256, 128};
 
@@ -30,7 +29,6 @@ inline void render_pixel(void *p_user_data, int x, int y, int depth)
     user_data->depth_buffer[x + (y * 256)] = depth;
 }
 
-#define DEBUG
 
 int bresenham_line(void *p_user_data, void *p_points, ivec2 v0, ivec2 v1)
 {
@@ -97,8 +95,6 @@ int bresenham_line(void *p_user_data, void *p_points, ivec2 v0, ivec2 v1)
 
     return head;
 }
-
-#define WIREFRAME
 
 void bresenham_triangle(void *p_user_data, ivec2 v0, ivec2 v1, ivec2 v2)
 {
