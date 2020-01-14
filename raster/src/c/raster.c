@@ -1,7 +1,7 @@
 #include "raster.h"
 
 #include "lib_raster.h"
-#include "vec2.h"
+#include "vector.h"
 #include "raster_math.h"
 
 #include <math.h>
@@ -11,7 +11,7 @@
 #define MAX(x, y) (((x) > (y)) ? (x) : (y))
 #define MIN(x, y) (((x) < (y)) ? (x) : (y))
 
-const vec2 resolution = {256, 128};
+const ivec2 resolution = {256, 128};
 
 int get_pixel_count()
 {
@@ -24,21 +24,15 @@ void clear_depth_buffer(void *p_user_data)
     memset(user_data->depth_buffer, 0, get_pixel_count() * sizeof(int));
 }
 
-void render_pixel(void *p_user_data, int x, int y, int depth)
+inline void render_pixel(void *p_user_data, int x, int y, int depth)
 {
-    // TODO: Properly clip triangles, then remove this
-    if (x < 0 || x >= resolution.x || y < 0 || y >= resolution.y)
-    {
-        return;
-    }
-
     user_data_struct *user_data = (user_data_struct *)p_user_data;
     user_data->depth_buffer[x + (y * 256)] = depth;
 }
 
 #define DEBUG
 
-int bresenham_line(void *p_user_data, void *p_points, vec2 v0, vec2 v1)
+int bresenham_line(void *p_user_data, void *p_points, ivec2 v0, ivec2 v1)
 {
     user_data_struct *user_data = (user_data_struct *)p_user_data;
     int *points = (int *)p_points;
@@ -104,7 +98,9 @@ int bresenham_line(void *p_user_data, void *p_points, vec2 v0, vec2 v1)
     return head;
 }
 
-void bresenham_triangle(void *p_user_data, vec2 v0, vec2 v1, vec2 v2)
+#define WIREFRAME
+
+void bresenham_triangle(void *p_user_data, ivec2 v0, ivec2 v1, ivec2 v2)
 {
     user_data_struct *user_data = (user_data_struct *)p_user_data;
 
@@ -121,13 +117,17 @@ void bresenham_triangle(void *p_user_data, vec2 v0, vec2 v1, vec2 v2)
     int delta_y = v1.y - v0.y;
     int delta_sign = sign(delta_y);
 
+#ifndef WIREFRAME
     for (int y = 0; y < point_count_a; ++y)
     {
         int ax = points_a[y];
         int bx = points_b[y];
 
         int min_x = MIN(ax, bx);
+        min_x = MAX(min_x, 0);
+
         int max_x = MAX(ax, bx);
+        max_x = MIN(max_x, resolution.x - 1);
 
         for (int x = min_x; x < max_x; ++x)
         {
@@ -135,30 +135,31 @@ void bresenham_triangle(void *p_user_data, vec2 v0, vec2 v1, vec2 v2)
             render_pixel(p_user_data, x, row_y, 100);
         }
     }
-    
+#endif
+
     free(points_a);
     free(points_b);
 }
 
 int vertical_sort(const void *a, const void *b)
 {
-    vec2 *va = (vec2 *)a;
-    vec2 *vb = (vec2 *)b;
+    ivec2 *va = (ivec2 *)a;
+    ivec2 *vb = (ivec2 *)b;
     return va->y - vb->y;
 }
 
 void rasterize_triangles(void *p_user_data, void *p_triangles, int vertex_count)
 {
-    vec2 *triangles = (vec2 *)p_triangles;
+    ivec2 *triangles = (ivec2 *)p_triangles;
 
     for (int i = 0; i < vertex_count; i += 3)
     {
-        vec2 v0 = triangles[i];
-        vec2 v1 = triangles[i + 1];
-        vec2 v2 = triangles[i + 2];
+        ivec2 v0 = triangles[i];
+        ivec2 v1 = triangles[i + 1];
+        ivec2 v2 = triangles[i + 2];
 
-        vec2 t[] = {v0, v1, v2};
-        qsort(t, 3, sizeof(vec2), vertical_sort);
+        ivec2 t[] = {v0, v1, v2};
+        qsort(t, 3, sizeof(ivec2), vertical_sort);
 
         v0 = t[0];
         v1 = t[1];
@@ -178,7 +179,7 @@ void rasterize_triangles(void *p_user_data, void *p_triangles, int vertex_count)
         }
         else
         {
-            vec2 v3 = {(int)(f0[0] + ((f1[1] - f0[1]) / (f2[1] - f0[1])) * (f2[0] - f0[0])), v1.y};
+            ivec2 v3 = {(int)(f0[0] + ((f1[1] - f0[1]) / (f2[1] - f0[1])) * (f2[0] - f0[0])), v1.y};
             bresenham_triangle(p_user_data, v0, v1, v3);
             bresenham_triangle(p_user_data, v2, v1, v3);
         }

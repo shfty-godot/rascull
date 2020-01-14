@@ -2,7 +2,7 @@
 
 #include "lib_raster.h"
 #include "raster.h"
-#include "vec2.h"
+#include "vector.h"
 
 #include <malloc.h>
 
@@ -62,8 +62,8 @@ godot_variant raster_bresenham_line(godot_object *p_instance, void *p_method_dat
     godot_vector2 gv0 = api->godot_variant_as_vector2(p_args[0]);
     godot_vector2 gv1 = api->godot_variant_as_vector2(p_args[1]);
 
-    vec2 v0 = vec2_from_godot_vector2(&gv0);
-    vec2 v1 = vec2_from_godot_vector2(&gv1);
+    ivec2 v0 = ivec2_from_godot_vector2(&gv0);
+    ivec2 v1 = ivec2_from_godot_vector2(&gv1);
 
     bresenham_line(p_user_data, NULL, v0, v1);
 
@@ -81,9 +81,9 @@ godot_variant raster_bresenham_triangle(godot_object *p_instance, void *p_method
     godot_vector2 gv1 = api->godot_variant_as_vector2(p_args[1]);
     godot_vector2 gv2 = api->godot_variant_as_vector2(p_args[2]);
 
-    vec2 v0 = vec2_from_godot_vector2(&gv0);
-    vec2 v1 = vec2_from_godot_vector2(&gv1);
-    vec2 v2 = vec2_from_godot_vector2(&gv2);
+    ivec2 v0 = ivec2_from_godot_vector2(&gv0);
+    ivec2 v1 = ivec2_from_godot_vector2(&gv1);
+    ivec2 v2 = ivec2_from_godot_vector2(&gv2);
 
     bresenham_triangle(p_user_data, v0, v1, v2);
 
@@ -100,12 +100,12 @@ godot_variant raster_rasterize_triangles(godot_object *p_instance, void *p_metho
     godot_pool_vector2_array triangle_pool = api->godot_variant_as_pool_vector2_array(p_args[0]);
     int vertex_count = api->godot_pool_vector2_array_size(&triangle_pool);
 
-    vec2 *triangles = (vec2 *)malloc(vertex_count * sizeof(vec2));
+    ivec2 *triangles = (ivec2 *)malloc(vertex_count * sizeof(ivec2));
 
     for (int i = 0; i < vertex_count; ++i)
     {
         godot_vector2 gv = api->godot_pool_vector2_array_get(&triangle_pool, i);
-        triangles[i] = vec2_from_godot_vector2(&gv);
+        triangles[i] = ivec2_from_godot_vector2(&gv);
     }
 
     rasterize_triangles(p_user_data, triangles, vertex_count);
