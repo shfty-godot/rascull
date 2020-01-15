@@ -12,6 +12,8 @@
         "xhash": "cpp",
         "xstring": "cpp",
         "malloc.h": "c",
-        "lib_raster.h": "c"
+        "lib_raster.h": "c",
+        "raster_math.h": "c",
+        "vector.h": "c"
     }
 }
