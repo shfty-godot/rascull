@@ -2,11 +2,14 @@
 
 #include "lib_raster.h"
 #include "vector.h"
+#include "matrix.h"
 #include "raster_math.h"
+#include "raster_geometry.h"
 
 #include <math.h>
 #include <malloc.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 //#define WIREFRAME
 
@@ -28,7 +31,6 @@ inline void render_pixel(void *p_user_data, int x, int y, int depth)
     user_data_struct *user_data = (user_data_struct *)p_user_data;
     user_data->depth_buffer[x + (y * 256)] = depth;
 }
-
 
 int bresenham_line(void *p_user_data, void *p_points, ivec2 v0, ivec2 v1)
 {
@@ -161,10 +163,6 @@ void bresenham_triangles(void *p_user_data, void *p_triangles, int vertex_count)
         v1 = t[1];
         v2 = t[2];
 
-        float f0[] = {(float)v0.x, (float)v0.y};
-        float f1[] = {(float)v1.x, (float)v1.y};
-        float f2[] = {(float)v2.x, (float)v2.y};
-
         if (v1.y == v2.y)
         {
             bresenham_triangle(p_user_data, v0, v1, v2);
@@ -175,6 +173,10 @@ void bresenham_triangles(void *p_user_data, void *p_triangles, int vertex_count)
         }
         else
         {
+            float f0[] = {(float)v0.x, (float)v0.y};
+            float f1[] = {(float)v1.x, (float)v1.y};
+            float f2[] = {(float)v2.x, (float)v2.y};
+            
             ivec2 v3 = {(int)(f0[0] + ((f1[1] - f0[1]) / (f2[1] - f0[1])) * (f2[0] - f0[0])), v1.y};
             bresenham_triangle(p_user_data, v0, v1, v3);
             bresenham_triangle(p_user_data, v2, v1, v3);
@@ -184,21 +186,70 @@ void bresenham_triangles(void *p_user_data, void *p_triangles, int vertex_count)
 
 void rasterize_triangles(void *p_user_data, void *p_triangles, int vertex_count)
 {
-    fvec3 *clip_triangles = (fvec3 *)p_triangles;
+    fvec3 *triangles = (fvec3 *)p_triangles;
 
-    // Clip triangles
+    // Triangles to clip space
+    mat4 proj_mat = projection_matrix(70.0f, 1024.0f / 600.0f, 0, 1, false);
 
-    // Perspective divide
+    fvec3 *clip_triangles = malloc(vertex_count * sizeof(fvec3));
     for (int i = 0; i < vertex_count; ++i)
     {
-        clip_triangles[i] = fvec3_div_float(clip_triangles[i], clip_triangles[i].z);
+        fvec3 v = triangles[i];
+        fvec4 cv = mat4_mul_fvec4(proj_mat, (fvec4){v.x, v.y, v.z, 1.0});
+        clip_triangles[i] = (fvec3){cv.x, cv.y, cv.z};
+    }
+
+    // Clip triangles
+    fvec3 *clipped_triangles = (fvec3 *)malloc(0);
+    int clipped_vertex_count = 0;
+
+    for (int i = 0; i < vertex_count; i += 3)
+    {
+        fvec3 np = fvec3_normalize((fvec3){0.0f, 0.0f, -1.0f});
+        fvec3 fp = fvec3_normalize((fvec3){0.0f, 0.0f, 1.0f});
+        fvec3 rp = fvec3_normalize((fvec3){1.0f, 0.0f, -1.0f});
+        fvec3 lp = fvec3_normalize((fvec3){-1.0f, 0.0f, -1.0f});
+        fvec3 tp = fvec3_normalize((fvec3){0.0f, 1.0f, -1.0f});
+        fvec3 bp = fvec3_normalize((fvec3){0.0f, -1.0f, -1.0f});
+
+        fvec3 *clipped = malloc(sizeof(fvec3) * 3);
+        clipped[0] = clip_triangles[i];
+        clipped[1] = clip_triangles[i + 1];
+        clipped[2] = clip_triangles[i + 2];
+
+        int count = 3;
+        clipped = clip_polygon(clipped, count, np, -0.05f, &count);
+        clipped = clip_polygon(clipped, count, fp, 100.0f, &count);
+        clipped = clip_polygon(clipped, count, lp, 0.0, &count);
+        clipped = clip_polygon(clipped, count, rp, 0.0, &count);
+        clipped = clip_polygon(clipped, count, tp, 0.0, &count);
+        clipped = clip_polygon(clipped, count, bp, 0.0, &count);
+
+        clipped_triangles = realloc(clipped_triangles, sizeof(fvec3) * (clipped_vertex_count + 3 * count));
+
+        for (int vi = 1; vi < count - 1; ++vi)
+        {
+            clipped_triangles[clipped_vertex_count++] = clipped[0];
+            clipped_triangles[clipped_vertex_count++] = clipped[vi];
+            clipped_triangles[clipped_vertex_count++] = clipped[vi + 1];
+        }
+
+        free(clipped);
+    }
+
+    free(clip_triangles);
+
+    // Perspective divide
+    for (int i = 0; i < clipped_vertex_count; ++i)
+    {
+        clipped_triangles[i] = fvec3_div(clipped_triangles[i], (fvec3){clipped_triangles[i].z, clipped_triangles[i].z, 1.0});
     }
 
     // Convert to screen space
-    ivec2 *screen_triangles = malloc(sizeof(ivec2) * vertex_count);
-    for (int i = 0; i < vertex_count; ++i)
+    ivec2 *screen_triangles = malloc(sizeof(ivec2) * clipped_vertex_count);
+    for (int i = 0; i < clipped_vertex_count; ++i)
     {
-        fvec3 vertex = clip_triangles[i];
+        fvec3 vertex = clipped_triangles[i];
         vertex.y *= -1.0f;
 
         vertex.x += 1.0f;
@@ -211,7 +262,10 @@ void rasterize_triangles(void *p_user_data, void *p_triangles, int vertex_count)
         screen_triangles[i] = screen_vertex;
     }
 
-    bresenham_triangles(p_user_data, screen_triangles, vertex_count);
+    free(clipped_triangles);
+
+    clear_depth_buffer(p_user_data);
+    bresenham_triangles(p_user_data, screen_triangles, clipped_vertex_count);
 
     free(screen_triangles);
 }

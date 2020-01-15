@@ -1,11 +1,10 @@
-[gd_scene load_steps=10 format=2]
+[gd_scene load_steps=9 format=2]
 
-[ext_resource path="res://Rasterizer.gd" type="Script" id=1]
-[ext_resource path="res://Controller.gd" type="Script" id=2]
-[ext_resource path="res://CullingCamera.gd" type="Script" id=3]
-[ext_resource path="res://TriangleMesh.gd" type="Script" id=4]
-[ext_resource path="res://RasterVisualizer.gd" type="Script" id=5]
-[ext_resource path="res://ProfilerLabel.gd" type="Script" id=6]
+[ext_resource path="res://Controller.gd" type="Script" id=1]
+[ext_resource path="res://RasterCamera.gd" type="Script" id=2]
+[ext_resource path="res://TriangleMesh.gd" type="Script" id=3]
+[ext_resource path="res://RasterVisualizer.gd" type="Script" id=4]
+[ext_resource path="res://ProfilerLabel.gd" type="Script" id=5]
 
 [sub_resource type="CylinderMesh" id=1]
 top_radius = 0.5
@@ -14,7 +13,7 @@ height = 1.0
 radial_segments = 8
 rings = 1
 
-[sub_resource type="ArrayMesh" id=3]
+[sub_resource type="ArrayMesh" id=2]
 surfaces/0 = {
 "aabb": AABB( -0.5, -0.5, 0, 1, 1.00001, 1e-005 ),
 "array_data": PoolByteArray( 0, 0, 0, 191, 0, 0, 0, 63, 0, 0, 0, 0, 0, 0, 0, 63, 0, 0, 0, 63, 0, 0, 0, 0, 0, 0, 0, 191, 0, 0, 0, 191, 0, 0, 0, 0 ),
@@ -27,22 +26,16 @@ surfaces/0 = {
 "vertex_count": 3
 }
 
-[sub_resource type="PlaneMesh" id=2]
+[sub_resource type="PlaneMesh" id=3]
 size = Vector2( 1, 1 )
 
 [node name="Spatial" type="Spatial"]
 
-[node name="Rasterizer" type="Node" parent="."]
+[node name="Controller" type="Spatial" parent="."]
 script = ExtResource( 1 )
 
-[node name="Controller" type="Spatial" parent="."]
+[node name="RasterCamera" type="Camera" parent="Controller"]
 script = ExtResource( 2 )
-
-[node name="CullingCamera" type="Camera" parent="Controller"]
-near = 0.01
-far = 10.0
-script = ExtResource( 3 )
-cull_root_path = NodePath("../../Meshes")
 
 [node name="Meshes" type="Spatial" parent="."]
 
@@ -56,16 +49,16 @@ material/0 = null
 [node name="TriangleMesh" type="MeshInstance" parent="Meshes" groups=[
 "rasterize",
 ]]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -2 )
-mesh = SubResource( 3 )
+transform = Transform( 0.707107, -0.707107, 0, 0.707107, 0.707107, 0, 0, 0, 1, 0, 0, -2 )
+mesh = SubResource( 2 )
 material/0 = null
-script = ExtResource( 4 )
+script = ExtResource( 3 )
 
 [node name="PlaneMesh" type="MeshInstance" parent="Meshes" groups=[
 "rasterize",
 ]]
 transform = Transform( 1, 0, 0, 0, -4.37114e-008, -1, 0, 1, -4.37114e-008, 2.00142, 0, -2 )
-mesh = SubResource( 2 )
+mesh = SubResource( 3 )
 material/0 = null
 
 [node name="UI" type="Control" parent="."]
@@ -78,7 +71,7 @@ margin_top = 446.0
 margin_right = 999.0
 margin_bottom = 574.0
 rect_min_size = Vector2( 256, 128 )
-script = ExtResource( 5 )
+script = ExtResource( 4 )
 
 [node name="Panel" type="Panel" parent="UI"]
 margin_right = 338.0
@@ -94,7 +87,7 @@ margin_bottom = -10.0
 rect_min_size = Vector2( 256, 128 )
 size_flags_horizontal = 3
 size_flags_vertical = 3
-script = ExtResource( 6 )
+script = ExtResource( 5 )
 
 [node name="VBoxContainer" type="VBoxContainer" parent="UI"]
 margin_left = 40.0
@@ -175,12 +168,8 @@ step = 0.01
 value = 10.0
 tick_count = 200
 ticks_on_borders = true
-[connection signal="profile_timestamps" from="Rasterizer" to="UI/Panel/ProfilerLabel" method="update_profiler"]
-[connection signal="rasterize_complete" from="Rasterizer" to="UI/RasterVisualizer" method="render"]
-[connection signal="render_triangles" from="Controller/CullingCamera" to="Rasterizer" method="rasterize"]
-[connection signal="value_changed" from="UI/VBoxContainer/HBoxContainer/FOVSlider" to="Controller/CullingCamera" method="set_fov"]
-[connection signal="value_changed" from="UI/VBoxContainer/HBoxContainer/FOVSlider" to="Controller/CullingCamera" method="update_projection"]
-[connection signal="value_changed" from="UI/VBoxContainer/HBoxContainer2/NearPlaneSlider" to="Controller/CullingCamera" method="set_znear"]
-[connection signal="value_changed" from="UI/VBoxContainer/HBoxContainer2/NearPlaneSlider" to="Controller/CullingCamera" method="update_projection"]
-[connection signal="value_changed" from="UI/VBoxContainer/HBoxContainer3/FarPlaneSlider" to="Controller/CullingCamera" method="set_zfar"]
-[connection signal="value_changed" from="UI/VBoxContainer/HBoxContainer3/FarPlaneSlider" to="Controller/CullingCamera" method="update_projection"]
+[connection signal="profile_timestamps" from="Controller/RasterCamera" to="UI/Panel/ProfilerLabel" method="update_profiler"]
+[connection signal="rasterize_complete" from="Controller/RasterCamera" to="UI/RasterVisualizer" method="render"]
+[connection signal="value_changed" from="UI/VBoxContainer/HBoxContainer/FOVSlider" to="Controller/RasterCamera" method="set_fov"]
+[connection signal="value_changed" from="UI/VBoxContainer/HBoxContainer2/NearPlaneSlider" to="Controller/RasterCamera" method="set_znear"]
+[connection signal="value_changed" from="UI/VBoxContainer/HBoxContainer3/FarPlaneSlider" to="Controller/RasterCamera" method="set_zfar"]

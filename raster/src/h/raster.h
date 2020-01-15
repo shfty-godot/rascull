@@ -4,6 +4,7 @@
 #include <gdnative_api_struct.gen.h>
 
 typedef struct ivec2 ivec2;
+typedef struct fvec3 fvec3;
 
 // Buffer management
 int get_pixel_count();

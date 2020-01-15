@@ -5,16 +5,11 @@
 
 #include "lib_raster.h"
 
-#define VEC2_OP(tn, on, op)                                    \
-    inline tn tn##_##on(const tn lhs, const tn rhs)            \
-    {                                                          \
-        tn result = {lhs.x op rhs.x, lhs.y op rhs.y};          \
-        return result;                                         \
-    };                                                         \
-    inline tn tn##_##on##_float(const tn lhs, const float rhs) \
-    {                                                          \
-        tn result = {lhs.x op rhs, lhs.y op rhs};              \
-        return result;                                         \
+#define VEC2_OP(tn, on, op)                           \
+    inline tn tn##_##on(const tn lhs, const tn rhs)   \
+    {                                                 \
+        tn result = {lhs.x op rhs.x, lhs.y op rhs.y}; \
+        return result;                                \
     };
 
 #define VEC2_FROM_GVEC2(tn, t)                                                          \
@@ -41,11 +36,6 @@
     inline tn tn##_##on(const tn lhs, const tn rhs)                   \
     {                                                                 \
         tn result = {lhs.x op rhs.x, lhs.y op rhs.y, lhs.z op rhs.z}; \
-        return result;                                                \
-    };                                                                \
-    inline tn tn##_##on##_float(const tn lhs, const float rhs)        \
-    {                                                                 \
-        tn result = {lhs.x op rhs, lhs.y op rhs, lhs.z op rhs};       \
         return result;                                                \
     };
 
@@ -101,16 +91,17 @@
     VEC4_OP(n, div, /)
 
 VEC2(ivec2, int)
-VEC3(ivec3, int)
-VEC4(ivec4, int)
 
-VEC2(fvec2, float)
 VEC3(fvec3, float)
 VEC4(fvec4, float)
 
-float fvec3_dot(fvec3 lhs, fvec3 rhs)
-{
-    return lhs.x * rhs.x + lhs.y * rhs.y + lhs.z * rhs.z;
-}
+float fvec3_sqlen(fvec3 v);
+float fvec3_length(fvec3 v);
+fvec3 fvec3_normalize(fvec3 v);
+float fvec3_dot(fvec3 lhs, fvec3 rhs);
+fvec3 fvec3_add_float(const fvec3 lhs, const float rhs);
+fvec3 fvec3_sub_float(const fvec3 lhs, const float rhs);
+fvec3 fvec3_mul_float(const fvec3 lhs, const float rhs);
+fvec3 fvec3_div_float(const fvec3 lhs, const float rhs);
 
 #endif
