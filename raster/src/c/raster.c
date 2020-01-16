@@ -13,37 +13,57 @@
 
 //#define WIREFRAME
 
-const ivec2 resolution = {256, 128};
+ivec2 resolution = {256, 128};
+float fov = 70.0f;
+float aspect = 1024.0f / 600.0f;
+float z_near = 0.05f;
+float z_far = 10.0f;
 
 int get_pixel_count()
 {
     return resolution.x * resolution.y;
 }
 
+void set_resolution(void *p_user_data, int x, int y)
+{
+    resolution.x = x;
+    resolution.y = y;
+
+    user_data_struct *user_data = (user_data_struct *)p_user_data;
+    user_data->depth_buffer = realloc(user_data->depth_buffer, sizeof(float) * x * y);
+}
+
 void clear_depth_buffer(void *p_user_data)
 {
     user_data_struct *user_data = (user_data_struct *)p_user_data;
-    memset(user_data->depth_buffer, 0, get_pixel_count() * sizeof(int));
+    for (int i = 0; i < get_pixel_count(); ++i) {
+        user_data->depth_buffer[i] = z_far;
+    }
 }
 
-inline void render_pixel(void *p_user_data, int x, int y, int depth)
+inline void render_pixel(void *p_user_data, int x, int y, float depth)
 {
     user_data_struct *user_data = (user_data_struct *)p_user_data;
-    user_data->depth_buffer[x + (y * 256)] = depth;
+    int idx = x + (y * resolution.x);
+    if(depth < user_data->depth_buffer[idx]) {
+        user_data->depth_buffer[idx] = depth;
+    }
 }
 
-int bresenham_line(void *p_user_data, void *p_points, ivec2 v0, ivec2 v1)
+int bresenham_line(void *p_user_data, void *p_points, void *p_depths, fvec3 v0, fvec3 v1)
 {
     user_data_struct *user_data = (user_data_struct *)p_user_data;
     int *points = (int *)p_points;
+    float *depths = (float *)p_depths;
+    int head = 0;
 
     bool changed = false;
 
-    int x = v0.x;
-    int y = v0.y;
+    int x = (int)v0.x;
+    int y = (int)v0.y;
 
-    int dx = v1.x - v0.x;
-    int dy = v1.y - v0.y;
+    int dx = (int)v1.x - x;
+    int dy = (int)v1.y - y;
 
     int len_x = abs(dx);
     int len_y = abs(dy);
@@ -57,17 +77,35 @@ int bresenham_line(void *p_user_data, void *p_points, ivec2 v0, ivec2 v1)
         changed = true;
     }
 
-    int head = 0;
+    // Depth
+    fvec3 v0v1 = fvec3_sub(v1, v0);
+    v0v1.z = 0;
+    float ifl = 1.0f / fvec3_length(v0v1);
 
+    fvec3 f0 = {(float)v0.x, (float)v0.y, 0};
+    fvec3 f1 = {(float)v1.x, (float)v1.y, 0};
+
+    // Step along line
     int e = 2 * len_y - len_x;
     for (int i = 0; i < len_x; ++i)
     {
+        fvec3 p = {(float)x, (float)y, 0};
+
+        float alpha = fvec3_length(fvec3_sub(f0, p)) * ifl;
+        float beta = fvec3_length(fvec3_sub(f1, p)) * ifl;
+        float depth = v1.z * alpha + v0.z * beta;
+
+        render_pixel(p_user_data, x, y, depth);
+
         if (points != NULL)
         {
             points[head] = x;
         }
 
-        render_pixel(p_user_data, x, y, 100);
+        if (depths != NULL)
+        {
+            depths[head] = depth;
+        }
 
         while (e >= 0)
         {
@@ -98,28 +136,30 @@ int bresenham_line(void *p_user_data, void *p_points, ivec2 v0, ivec2 v1)
     return head;
 }
 
-void bresenham_triangle(void *p_user_data, ivec2 v0, ivec2 v1, ivec2 v2)
+void bresenham_triangle(void *p_user_data, fvec3 v0, fvec3 v1, fvec3 v2)
 {
     user_data_struct *user_data = (user_data_struct *)p_user_data;
 
-    int *points_a;
-    int *points_b;
+    int *points_a = (int *)malloc(resolution.y * sizeof(int));
+    int *points_b = (int *)malloc(resolution.y * sizeof(int));
 
-    points_a = (int *)malloc(128 * sizeof(int));
-    points_b = (int *)malloc(128 * sizeof(int));
+    float *depths_a = (float *)malloc(resolution.y * sizeof(float));
+    float *depths_b = (float *)malloc(resolution.y * sizeof(float));
 
-    int point_count_a = bresenham_line(p_user_data, points_a, v0, v1);
-    int point_count_b = bresenham_line(p_user_data, points_b, v0, v2);
-    bresenham_line(p_user_data, NULL, v1, v2);
-
-    int delta_y = v1.y - v0.y;
-    int delta_sign = sign(delta_y);
+    int point_count_a = bresenham_line(p_user_data, points_a, depths_a, v0, v1);
+    int point_count_b = bresenham_line(p_user_data, points_b, depths_b, v0, v2);
+    bresenham_line(p_user_data, NULL, NULL, v1, v2);
 
 #ifndef WIREFRAME
+    int delta_y = (int)v1.y - (int)v0.y;
+    int delta_sign = sign(delta_y);
+
     for (int y = 0; y < point_count_a; ++y)
     {
         int ax = points_a[y];
+        float ad = depths_a[y];
         int bx = points_b[y];
+        float bd = depths_b[y];
 
         int min_x = MIN(ax, bx);
         min_x = MAX(min_x, 0);
@@ -127,59 +167,68 @@ void bresenham_triangle(void *p_user_data, ivec2 v0, ivec2 v1, ivec2 v2)
         int max_x = MAX(ax, bx);
         max_x = MIN(max_x, resolution.x - 1);
 
+        int row_y = delta_sign > 0 ? y + (int)v0.y : (int)v0.y - y;
+
+        float il = 1.0f / ((float)max_x - (float)min_x);
+
         for (int x = min_x; x < max_x; ++x)
         {
-            int row_y = delta_sign > 0 ? y + v0.y : v0.y - y;
-            render_pixel(p_user_data, x, row_y, 100);
+            float alpha = ((float)x - (float)min_x) * il;
+            float beta = ((float)max_x - (float)x) * il;
+            float depth = (ad * alpha + bd * beta);
+            render_pixel(p_user_data, x, row_y, depth);
         }
     }
 #endif
 
     free(points_a);
     free(points_b);
+    
+    free(depths_a);
+    free(depths_b);
 }
 
 int vertical_sort(const void *a, const void *b)
 {
-    ivec2 *va = (ivec2 *)a;
-    ivec2 *vb = (ivec2 *)b;
-    return va->y - vb->y;
+    fvec3 *va = (fvec3 *)a;
+    fvec3 *vb = (fvec3 *)b;
+    return va->y > vb->y ? 1 : -1;
 }
 
 void bresenham_triangles(void *p_user_data, void *p_triangles, int vertex_count)
 {
-    ivec2 *triangles = (ivec2 *)p_triangles;
+    fvec3 *triangles = (fvec3 *)p_triangles;
 
     for (int i = 0; i < vertex_count; i += 3)
     {
-        ivec2 v0 = triangles[i];
-        ivec2 v1 = triangles[i + 1];
-        ivec2 v2 = triangles[i + 2];
+        fvec3 v0 = triangles[i];
+        fvec3 v1 = triangles[i + 1];
+        fvec3 v2 = triangles[i + 2];
 
-        ivec2 t[] = {v0, v1, v2};
-        qsort(t, 3, sizeof(ivec2), vertical_sort);
+        fvec3 t[] = {v0, v1, v2};
+        qsort(t, 3, sizeof(fvec3), vertical_sort);
 
         v0 = t[0];
         v1 = t[1];
         v2 = t[2];
 
-        if (v1.y == v2.y)
+        if ((int)v1.y == (int)v2.y)
         {
             bresenham_triangle(p_user_data, v0, v1, v2);
         }
-        else if (v0.y == v1.y)
+        else if ((int)v0.y == (int)v1.y)
         {
             bresenham_triangle(p_user_data, v2, v0, v1);
         }
         else
         {
-            float f0[] = {(float)v0.x, (float)v0.y};
-            float f1[] = {(float)v1.x, (float)v1.y};
-            float f2[] = {(float)v2.x, (float)v2.y};
-            
-            ivec2 v3 = {(int)(f0[0] + ((f1[1] - f0[1]) / (f2[1] - f0[1])) * (f2[0] - f0[0])), v1.y};
+            fvec3 v3 = {
+                v0.x + ((v1.y - v0.y) / (v2.y - v0.y)) * (v2.x - v0.x),
+                v1.y,
+                v1.z
+            };
             bresenham_triangle(p_user_data, v0, v1, v3);
-            bresenham_triangle(p_user_data, v2, v1, v3);
+            bresenham_triangle(p_user_data, v2, v3, v1);
         }
     }
 }
@@ -189,7 +238,7 @@ void rasterize_triangles(void *p_user_data, void *p_triangles, int vertex_count)
     fvec3 *triangles = (fvec3 *)p_triangles;
 
     // Triangles to clip space
-    mat4 proj_mat = projection_matrix(70.0f, 1024.0f / 600.0f, 0, 1, false);
+    mat4 proj_mat = projection_matrix(fov, aspect, 0, 1, false);
 
     fvec3 *clip_triangles = malloc(vertex_count * sizeof(fvec3));
     for (int i = 0; i < vertex_count; ++i)
@@ -218,8 +267,8 @@ void rasterize_triangles(void *p_user_data, void *p_triangles, int vertex_count)
         clipped[2] = clip_triangles[i + 2];
 
         int count = 3;
-        clipped = clip_polygon(clipped, count, np, -0.05f, &count);
-        clipped = clip_polygon(clipped, count, fp, 100.0f, &count);
+        clipped = clip_polygon(clipped, count, np, -z_near, &count);
+        clipped = clip_polygon(clipped, count, fp, z_far, &count);
         clipped = clip_polygon(clipped, count, lp, 0.0, &count);
         clipped = clip_polygon(clipped, count, rp, 0.0, &count);
         clipped = clip_polygon(clipped, count, tp, 0.0, &count);
@@ -246,7 +295,7 @@ void rasterize_triangles(void *p_user_data, void *p_triangles, int vertex_count)
     }
 
     // Convert to screen space
-    ivec2 *screen_triangles = malloc(sizeof(ivec2) * clipped_vertex_count);
+    fvec3 *screen_triangles = malloc(sizeof(fvec3) * clipped_vertex_count);
     for (int i = 0; i < clipped_vertex_count; ++i)
     {
         fvec3 vertex = clipped_triangles[i];
@@ -255,11 +304,10 @@ void rasterize_triangles(void *p_user_data, void *p_triangles, int vertex_count)
         vertex.x += 1.0f;
         vertex.y += 1.0f;
 
-        vertex.x *= 127.5f;
-        vertex.y *= 63.5f;
+        vertex.x *= ((float)resolution.x - 0.5f) * 0.5f;
+        vertex.y *= ((float)resolution.y - 0.5f) * 0.5f;
 
-        ivec2 screen_vertex = {(int)vertex.x, (int)vertex.y};
-        screen_triangles[i] = screen_vertex;
+        screen_triangles[i] = vertex;
     }
 
     free(clipped_triangles);

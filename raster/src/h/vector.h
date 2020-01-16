@@ -91,6 +91,7 @@
     VEC4_OP(n, div, /)
 
 VEC2(ivec2, int)
+VEC2(fvec2, float)
 
 VEC3(fvec3, float)
 VEC4(fvec4, float)

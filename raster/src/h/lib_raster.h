@@ -5,7 +5,7 @@
 
 typedef struct user_data_struct
 {
-    int *depth_buffer;
+    float *depth_buffer;
 } user_data_struct;
 
 const godot_gdnative_core_api_struct *api;

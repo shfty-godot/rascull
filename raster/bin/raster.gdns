@@ -3,5 +3,5 @@
 [ext_resource path="res://bin/libraster.gdnlib" type="GDNativeLibrary" id=1]
 
 [resource]
-class_name = "Simple"
+class_name = "Raster"
 library = ExtResource( 1 )

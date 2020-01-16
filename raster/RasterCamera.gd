@@ -4,42 +4,68 @@ signal render_triangles(triangles)
 signal rasterize_complete()
 signal profile_timestamps(timestamps)
 
-var proj_mat = null
+export(int) var raster_x_resolution = 256 setget set_raster_x_resolution
+export(int) var raster_y_resolution = 128 setget set_raster_y_resolution
+
+func set_raster_x_resolution(new_raster_x_resolution):
+	if new_raster_x_resolution != raster_x_resolution:
+		raster_x_resolution = new_raster_x_resolution
+		Raster.set_resolution(raster_x_resolution, raster_y_resolution)
+
+func set_raster_y_resolution(new_raster_y_resolution):
+	if new_raster_y_resolution != raster_y_resolution:
+		raster_y_resolution = new_raster_y_resolution
+		Raster.set_resolution(raster_x_resolution, raster_y_resolution)
 
 func set_fov(new_fov) -> void:
 	.set_fov(new_fov)
-	# TODO: Update Raster FOV
+	Raster.set_fov(new_fov)
 
 func set_znear(new_znear) -> void:
 	.set_znear(new_znear)
-	# TODO: Update Raster ZNear
+	Raster.set_z_near(new_znear)
 
 func set_zfar(new_zfar) -> void:
 	.set_zfar(new_zfar)
-	# TODO: Update Raster ZFar
+	Raster.set_z_far(new_zfar)
 
-# TODO: Hook Viewport::size_changed and update Raster aspect
+func viewport_size_changed() -> void:
+	var view_size = get_viewport().size
+	Raster.set_aspect(view_size.x / view_size.y)
 
-# TODO: Move backface cull and world / view transformation into C
+# TODO: Move backface cull into C
+
+func _ready() -> void:
+	get_viewport().connect("size_changed", self, "viewport_size_changed")
+	Raster.set_resolution(raster_x_resolution, raster_y_resolution);
 
 func _process(delta) -> void:
-	var objects: Array = gather_objects()
-	var object_transforms_vertices: Array = get_object_transforms_vertices(objects)
-	var front_face_transforms_vertices: Array = cull_backface_transforms_vertices(object_transforms_vertices)
-	var world_vertices: PoolVector3Array = verts_to_world_space(front_face_transforms_vertices)
-	var view_vertices: PoolVector3Array = verts_to_view_space(world_vertices)
+	var instances: Array = gather_instances()
+	var instance_matrices_vertices: Array = get_object_matrices_vertices(instances)
+	var front_face_matrices_vertices: Array = cull_backface_matrices_vertices(instance_matrices_vertices)
 
 	# Rasterize
 	var ts = OS.get_ticks_usec()
-	Raster.rasterize_triangles(view_vertices)
+
+	var matrices_vertices = []
+	for matrix_vertices in front_face_matrices_vertices:
+		matrices_vertices.append([
+			matrix_vertices["matrix"],
+			matrix_vertices["vertices"]
+		]);
+
+	Raster.rasterize_objects(matrices_vertices, transform_to_matrix(global_transform.inverse()))
+
 	var es = OS.get_ticks_usec() - ts;
+
+	cull_instances(instances)
+
 	emit_signal("profile_timestamps", {
 		"rasterize": es
 	})
-	emit_signal("rasterize_complete")
 
 
-func gather_objects() -> Array:
+func gather_instances() -> Array:
 	var frustum_instance_ids = VisualServer.instances_cull_convex(get_frustum(), get_world().get_scenario())
 
 	var instances := []
@@ -53,30 +79,38 @@ func gather_objects() -> Array:
 func should_gather_object(instance: VisualInstance) -> bool:
 	return instance.is_in_group("rasterize")
 
-func get_object_transforms_vertices(objects) -> Array:
+func get_object_matrices_vertices(objects) -> Array:
 	var object_transforms_vertices := []
 	for child in objects:
-		if not child.visible:
-			continue
-
 		if child is MeshInstance:
+			var mat = transform_to_matrix(child.global_transform)
 			object_transforms_vertices.append({
 				"transform": child.global_transform,
+				"matrix": mat,
 				"vertices": child.get_mesh().get_faces()
 			})
 
 	return object_transforms_vertices
 
-func cull_backface_transforms_vertices(transforms_vertices: Array) -> Array:
+func transform_to_matrix(transform: Transform) -> PoolRealArray:
+	var mat = PoolRealArray()
+
+	for x in range(0, 4):
+		for y in range(0, 3):
+			mat.append(transform[x][y])
+		mat.append(0 if x < 3 else 1)
+
+	return mat
+
+func cull_backface_matrices_vertices(transforms_vertices: Array) -> Array:
 	var front_face_transforms_vertices := []
 
 	for transform_vertices in transforms_vertices:
-		var transform = transform_vertices["transform"]
 		var vertices = transform_vertices["vertices"]
 
 		front_face_transforms_vertices.append({
-			"transform": transform,
-			"vertices": []
+			"vertices": [],
+			"matrix": transform_vertices["matrix"]
 		})
 
 		for tri_idx in range(0, vertices.size(), 3):
@@ -85,7 +119,7 @@ func cull_backface_transforms_vertices(transforms_vertices: Array) -> Array:
 			var v2 = vertices[tri_idx + 2]
 
 			var vn = (v2 - v0).cross(v1 - v0).normalized()
-			var local_camera = transform.xform_inv(global_transform.origin)
+			var local_camera = transform_vertices["transform"].xform_inv(global_transform.origin)
 			var view_vector = (v0 - local_camera).normalized()
 
 			if vn.dot(view_vector) <= 0:
@@ -95,18 +129,23 @@ func cull_backface_transforms_vertices(transforms_vertices: Array) -> Array:
 
 	return front_face_transforms_vertices
 
-func verts_to_world_space(transforms_vertices: Array) -> PoolVector3Array:
-	var world_vertices = PoolVector3Array()
+func cull_instances(instances: Array) -> void:
+	for instance in instances:
+		var aabb = instance.get_transformed_aabb()
 
-	for transform_vertices in transforms_vertices:
-		var transform = transform_vertices["transform"]
-		var vertices = transform_vertices["vertices"]
-		for vertex in vertices:
-			world_vertices.append(transform.xform(vertex))
+		var aabb_center = Vector3.ZERO
+		for i in range(0, 8):
+			aabb_center += aabb.get_endpoint(i)
+		aabb_center /= 8
 
-	return world_vertices
+		var screen_point = unproject_position(aabb_center)
+		var ndc_point = screen_point / get_viewport().size
+		var raster_point = ndc_point * Vector2(raster_x_resolution - 1, raster_y_resolution - 1)
 
-func verts_to_view_space(vertices: PoolVector3Array) -> PoolVector3Array:
-	for i in range(0, vertices.size()):
-		vertices[i] = global_transform.xform_inv(vertices[i])
-	return vertices
+		var x = clamp(floor(raster_point.x), 0, raster_x_resolution - 1)
+		var y = clamp(floor(raster_point.y), 0, raster_y_resolution - 1)
+
+		var depth = (aabb_center - global_transform.origin).length() - aabb.size.length() * 0.5
+		var raster_depth = Raster.get_depth(x, y)
+
+		instance.visible = depth < raster_depth
