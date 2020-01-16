@@ -1,0 +1,41 @@
+[gd_scene load_steps=6 format=2]
+
+[ext_resource path="res://scripts/Controller.gd" type="Script" id=1]
+[ext_resource path="res://scripts/RasterCamera.gd" type="Script" id=2]
+[ext_resource path="res://scripts/TriangleMesh.gd" type="Script" id=3]
+[ext_resource path="res://instances/UI.tscn" type="PackedScene" id=4]
+
+[sub_resource type="ArrayMesh" id=1]
+surfaces/0 = {
+"aabb": AABB( -0.5, -0.5, 0, 1, 1.00001, 1e-005 ),
+"array_data": PoolByteArray( 0, 0, 0, 191, 0, 0, 0, 63, 0, 0, 0, 0, 0, 0, 0, 63, 0, 0, 0, 63, 0, 0, 0, 0, 0, 0, 0, 191, 0, 0, 0, 191, 0, 0, 0, 0 ),
+"array_index_data": PoolByteArray(  ),
+"blend_shape_data": [  ],
+"format": 97281,
+"index_count": 0,
+"primitive": 4,
+"skeleton_aabb": [  ],
+"vertex_count": 3
+}
+
+[node name="Triangle" type="Spatial"]
+
+[node name="Controller" type="Spatial" parent="."]
+script = ExtResource( 1 )
+
+[node name="RasterCamera" type="Camera" parent="Controller"]
+script = ExtResource( 2 )
+
+[node name="Meshes" type="Spatial" parent="."]
+
+[node name="TriangleMesh" type="MeshInstance" parent="Meshes" groups=[
+"occluder",
+]]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -1 )
+mesh = SubResource( 1 )
+material/0 = null
+script = ExtResource( 3 )
+
+[node name="UI" parent="." instance=ExtResource( 4 )]
+
+[editable path="UI"]

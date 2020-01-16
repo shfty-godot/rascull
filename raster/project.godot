@@ -16,12 +16,13 @@ _global_script_class_icons={
 [application]
 
 config/name="Raster"
-run/main_scene="res://Main.tscn"
+run/main_scene="res://scenes/main.tscn"
 config/icon="res://icon.png"
 
 [autoload]
 
 Raster="*res://bin/raster.gdns"
+Profiler="*res://scripts/Profiler.gd"
 
 [display]
 

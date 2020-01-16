@@ -1,5 +1,9 @@
 extends Camera
 
+# TODO: Move backface cull into C
+# TODO: React to FOV flip change and update rasterizer
+# TODO: Rasterize AABBs to check against depth buffer
+
 signal render_triangles(triangles)
 signal rasterize_complete()
 signal profile_timestamps(timestamps)
@@ -33,8 +37,6 @@ func viewport_size_changed() -> void:
 	var view_size = get_viewport().size
 	Raster.set_aspect(view_size.x / view_size.y)
 
-# TODO: Move backface cull into C
-
 func _ready() -> void:
 	get_viewport().connect("size_changed", self, "viewport_size_changed")
 	Raster.set_resolution(raster_x_resolution, raster_y_resolution);
@@ -60,10 +62,7 @@ func _process(delta) -> void:
 
 	cull_instances(instances)
 
-	emit_signal("profile_timestamps", {
-		"rasterize": es
-	})
-
+	Profiler.set_timestamp("rasterize", es)
 
 func gather_instances() -> Array:
 	var frustum_instance_ids = VisualServer.instances_cull_convex(get_frustum(), get_world().get_scenario())
@@ -77,7 +76,7 @@ func gather_instances() -> Array:
 	return instances
 
 func should_gather_object(instance: VisualInstance) -> bool:
-	return instance.is_in_group("rasterize")
+	return instance.is_in_group("occluder")
 
 func get_object_matrices_vertices(objects) -> Array:
 	var object_transforms_vertices := []

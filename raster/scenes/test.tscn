@@ -1,0 +1,230 @@
+[gd_scene load_steps=4 format=2]
+
+[ext_resource path="res://materials/blue.tres" type="Material" id=1]
+[ext_resource path="res://instances/RasterCameraController.tscn" type="PackedScene" id=2]
+[ext_resource path="res://instances/UI.tscn" type="PackedScene" id=3]
+
+[node name="Test" type="Spatial"]
+
+[node name="Meshes" type="Spatial" parent="."]
+
+[node name="CSGBox" type="CSGBox" parent="Meshes"]
+editor/display_folded = true
+transform = Transform( 1.21157e-007, 1.68354e-008, -1, -4.98257e-009, 1, 1.68354e-008, 1, 4.98257e-009, 1.21157e-007, 0, 6, 0 )
+use_collision = true
+invert_faces = true
+width = 40.0
+height = 12.0
+depth = 40.0
+
+[node name="CSGSphere3" type="CSGSphere" parent="Meshes/CSGBox"]
+transform = Transform( 1, 0, 0, 0, 1, 6.03673e-016, 0, 6.03673e-016, 1, 0.778877, 6.0744, 7.74515 )
+operation = 2
+use_collision = true
+invert_faces = true
+radius = 2.9814
+smooth_faces = false
+material = ExtResource( 1 )
+
+[node name="CSGCylinder" type="CSGCylinder" parent="Meshes/CSGBox"]
+transform = Transform( 1, 0, 0, 0, 1, 6.03673e-016, 0, 6.03673e-016, 1, 7.10543e-015, 0, -2.13163e-014 )
+operation = 2
+use_collision = true
+invert_faces = true
+radius = 2.96249
+height = 14.5246
+smooth_faces = false
+material = ExtResource( 1 )
+
+[node name="CSGSphere2" type="CSGSphere" parent="Meshes/CSGBox"]
+transform = Transform( 1, 0, 0, 0, 1, 6.03673e-016, 0, 6.03673e-016, 1, 11.4026, -4.39992, -8.78901 )
+operation = 2
+use_collision = true
+invert_faces = true
+radius = 2.9814
+smooth_faces = false
+material = ExtResource( 1 )
+
+[node name="CSGCombiner" type="CSGCombiner" parent="Meshes/CSGBox"]
+transform = Transform( 1.21157e-007, -4.98257e-009, 1, 1.68354e-008, 1, 4.98257e-009, -1, 1.68354e-008, 1.21157e-007, 12.0486, -6, 10.6065 )
+operation = 2
+
+[node name="CSGCylinder4" type="CSGCylinder" parent="Meshes/CSGBox/CSGCombiner"]
+transform = Transform( 1.21157e-007, 1.68354e-008, -1, -4.98257e-009, 1, 1.68354e-008, 1, 4.98257e-009, 1.21157e-007, -0.38906, 0.471195, 0.425142 )
+use_collision = true
+invert_faces = true
+smooth_faces = false
+material = ExtResource( 1 )
+
+[node name="CSGCylinder5" type="CSGCylinder" parent="Meshes/CSGBox/CSGCombiner"]
+transform = Transform( 1.21157e-007, 1.68354e-008, -1, -4.98257e-009, 1, 1.68354e-008, 1, 4.98257e-009, 1.21157e-007, -1.83603, 0.471195, 0.425142 )
+use_collision = true
+invert_faces = true
+smooth_faces = false
+material = ExtResource( 1 )
+
+[node name="CSGCylinder6" type="CSGCylinder" parent="Meshes/CSGBox/CSGCombiner"]
+transform = Transform( 1.21157e-007, 1.68354e-008, -1, -4.98257e-009, 1, 1.68354e-008, 1, 4.98257e-009, 1.21157e-007, -1.83603, 0.471195, 2.03026 )
+use_collision = true
+invert_faces = true
+smooth_faces = false
+material = ExtResource( 1 )
+
+[node name="CSGCylinder7" type="CSGCylinder" parent="Meshes/CSGBox/CSGCombiner"]
+transform = Transform( 1.21157e-007, 1.68354e-008, -1, -4.98257e-009, 1, 1.68354e-008, 1, 4.98257e-009, 1.21157e-007, -1.83603, 1.19244, 2.03026 )
+use_collision = true
+invert_faces = true
+smooth_faces = false
+material = ExtResource( 1 )
+
+[node name="CSGCylinder8" type="CSGCylinder" parent="Meshes/CSGBox/CSGCombiner"]
+transform = Transform( 1.21157e-007, 1.68354e-008, -1, -4.98257e-009, 1, 1.68354e-008, 1, 4.98257e-009, 1.21157e-007, -1.83603, 3.09243, 2.03026 )
+use_collision = true
+invert_faces = true
+smooth_faces = false
+material = ExtResource( 1 )
+
+[node name="CSGCylinder9" type="CSGCylinder" parent="Meshes/CSGBox/CSGCombiner"]
+transform = Transform( 1.21157e-007, 1.68354e-008, -1, -4.98257e-009, 1, 1.68354e-008, 1, 4.98257e-009, 1.21157e-007, -1.83603, 1.98586, 2.03026 )
+use_collision = true
+invert_faces = true
+smooth_faces = false
+material = ExtResource( 1 )
+
+[node name="CSGCylinder10" type="CSGCylinder" parent="Meshes/CSGBox/CSGCombiner"]
+transform = Transform( 1.21157e-007, 1.68354e-008, -1, -4.98257e-009, 1, 1.68354e-008, 1, 4.98257e-009, 1.21157e-007, -1.83603, 2.71465, 2.03026 )
+use_collision = true
+invert_faces = true
+smooth_faces = false
+material = ExtResource( 1 )
+
+[node name="CSGCylinder11" type="CSGCylinder" parent="Meshes/CSGBox/CSGCombiner"]
+transform = Transform( 1.21157e-007, 1.68354e-008, -1, -4.98257e-009, 1, 1.68354e-008, 1, 4.98257e-009, 1.21157e-007, -1.21576, 3.84776, 2.03026 )
+use_collision = true
+invert_faces = true
+smooth_faces = false
+material = ExtResource( 1 )
+
+[node name="CSGCylinder12" type="CSGCylinder" parent="Meshes/CSGBox/CSGCombiner"]
+transform = Transform( 1.21157e-007, 1.68354e-008, -1, -4.98257e-009, 1, 1.68354e-008, 1, 4.98257e-009, 1.21157e-007, 0.0753498, 4.5074, 2.03026 )
+use_collision = true
+invert_faces = true
+smooth_faces = false
+material = ExtResource( 1 )
+
+[node name="CSGCylinder13" type="CSGCylinder" parent="Meshes/CSGBox/CSGCombiner"]
+transform = Transform( 1.21157e-007, 1.68354e-008, -1, -4.98257e-009, 1, 1.68354e-008, 1, 4.98257e-009, 1.21157e-007, 1.13028, 4.85868, 2.03026 )
+use_collision = true
+invert_faces = true
+smooth_faces = false
+material = ExtResource( 1 )
+
+[node name="CSGCylinder14" type="CSGCylinder" parent="Meshes/CSGBox/CSGCombiner"]
+transform = Transform( 1.21157e-007, 1.68354e-008, -1, -4.98257e-009, 1, 1.68354e-008, 1, 4.98257e-009, 1.21157e-007, 2.76442, 5.03427, 2.03026 )
+use_collision = true
+invert_faces = true
+smooth_faces = false
+material = ExtResource( 1 )
+
+[node name="CSGCylinder2" type="CSGCylinder" parent="Meshes/CSGBox"]
+transform = Transform( 0.779287, 9.45047e-009, -0.626667, -1.16499e-008, 1, 5.93386e-010, 0.626667, 6.8382e-009, 0.779287, 3.37863, -5.66567, 11.1421 )
+operation = 2
+use_collision = true
+invert_faces = true
+smooth_faces = false
+material = ExtResource( 1 )
+
+[node name="CSGCylinder3" type="CSGCylinder" parent="Meshes/CSGBox"]
+transform = Transform( 0.779287, 9.45047e-009, -0.626667, -1.16499e-008, 1, 5.93386e-010, 0.626667, 6.8382e-009, 0.779287, 1.53462, -5.60377, 13.4352 )
+operation = 2
+use_collision = true
+invert_faces = true
+smooth_faces = false
+material = ExtResource( 1 )
+
+[node name="CSGSphere" type="CSGSphere" parent="Meshes"]
+transform = Transform( 1.21157e-007, 1.68354e-008, -1, -4.98257e-009, 1, 1.68354e-008, 1, 4.98257e-009, 1.21157e-007, 3.94593, 8.96913, -11.063 )
+use_collision = true
+smooth_faces = false
+material = ExtResource( 1 )
+
+[node name="CSGTorus" type="CSGTorus" parent="Meshes"]
+transform = Transform( 0.00207149, 0.455546, -0.89021, -0.999998, 0.00128213, -0.00167087, 0.000380223, 0.890211, 0.455548, 11.3915, 5.3813, -5.48398 )
+use_collision = true
+outer_radius = 5.0
+smooth_faces = false
+material = ExtResource( 1 )
+
+[node name="DonutCloud" type="Spatial" parent="Meshes"]
+editor/display_folded = true
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -8.29442, 5.96009, -12.5671 )
+
+[node name="CSGTorus2" type="CSGTorus" parent="Meshes/DonutCloud"]
+transform = Transform( 1, 1.64868e-007, -1.68354e-008, -1.68354e-008, -4.8694e-008, -1, -1.64868e-007, 1, -4.8694e-008, -2.27487, -2.34956, -2.15566 )
+use_collision = true
+inner_radius = 0.316966
+outer_radius = 0.78267
+smooth_faces = false
+material = ExtResource( 1 )
+
+[node name="CSGTorus3" type="CSGTorus" parent="Meshes/DonutCloud"]
+transform = Transform( 1, 1.64868e-007, -1.68354e-008, -1.68354e-008, -4.8694e-008, -1, -1.64868e-007, 1, -4.8694e-008, -4.25422, 0.967109, -0.891836 )
+use_collision = true
+inner_radius = 0.316966
+outer_radius = 0.78267
+smooth_faces = false
+material = ExtResource( 1 )
+
+[node name="CSGTorus4" type="CSGTorus" parent="Meshes/DonutCloud"]
+transform = Transform( 1, 1.64868e-007, -1.68354e-008, -1.68354e-008, -4.8694e-008, -1, -1.64868e-007, 1, -4.8694e-008, -4.90435, -0.497156, 0.839364 )
+use_collision = true
+inner_radius = 0.316966
+outer_radius = 0.78267
+smooth_faces = false
+material = ExtResource( 1 )
+
+[node name="CSGTorus5" type="CSGTorus" parent="Meshes/DonutCloud"]
+transform = Transform( 1, 1.64868e-007, -1.68354e-008, -1.68354e-008, -4.8694e-008, -1, -1.64868e-007, 1, -4.8694e-008, -1.71164, 0.269506, 2.45809 )
+use_collision = true
+inner_radius = 0.316966
+outer_radius = 0.78267
+smooth_faces = false
+material = ExtResource( 1 )
+
+[node name="CSGTorus7" type="CSGTorus" parent="Meshes/DonutCloud"]
+transform = Transform( 1, 1.64868e-007, -1.68354e-008, -1.68354e-008, -4.8694e-008, -1, -1.64868e-007, 1, -4.8694e-008, 0.0224075, 1.86217, -1.90905 )
+use_collision = true
+inner_radius = 0.316966
+outer_radius = 0.78267
+smooth_faces = false
+material = ExtResource( 1 )
+
+[node name="CSGTorus8" type="CSGTorus" parent="Meshes/DonutCloud"]
+transform = Transform( 1, 1.64868e-007, -1.68354e-008, -1.68354e-008, -4.8694e-008, -1, -1.64868e-007, 1, -4.8694e-008, 3.30313, 1.86217, -0.519217 )
+use_collision = true
+inner_radius = 0.316966
+outer_radius = 0.78267
+smooth_faces = false
+material = ExtResource( 1 )
+
+[node name="CSGTorus9" type="CSGTorus" parent="Meshes/DonutCloud"]
+transform = Transform( 1, 1.64868e-007, -1.68354e-008, -1.68354e-008, -4.8694e-008, -1, -1.64868e-007, 1, -4.8694e-008, 2.28736, -0.554143, -2.70255 )
+use_collision = true
+inner_radius = 0.316966
+outer_radius = 0.78267
+smooth_faces = false
+material = ExtResource( 1 )
+
+[node name="CSGTorus10" type="CSGTorus" parent="Meshes/DonutCloud"]
+transform = Transform( 1, 1.64868e-007, -1.68354e-008, -1.68354e-008, -4.8694e-008, -1, -1.64868e-007, 1, -4.8694e-008, 1.03261, -2.51099, -0.254731 )
+use_collision = true
+inner_radius = 0.316966
+outer_radius = 0.78267
+smooth_faces = false
+material = ExtResource( 1 )
+
+[node name="Controller" parent="." instance=ExtResource( 2 )]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.342241, 5.48626, 16.7846 )
+move_speed = 15.0
+
+[node name="UI" parent="." instance=ExtResource( 3 )]

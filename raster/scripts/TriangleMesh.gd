@@ -3,6 +3,9 @@ tool
 
 # Called when the node enters the scene tree for the first time.
 func _init() -> void:
+	if not Engine.editor_hint:
+		return
+
 	var mesh = ArrayMesh.new()
 	var verts := []
 	verts.resize(ArrayMesh.ARRAY_MAX)
