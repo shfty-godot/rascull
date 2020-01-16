@@ -1,5 +1,7 @@
 extends Spatial
 
+export(float) var move_speed = 5.0;
+
 var yaw = 0
 var pitch = 0
 
@@ -15,7 +17,7 @@ func _physics_process(delta) -> void:
 	wish_vec.z += -1 if Input.is_key_pressed(KEY_E) else 0
 	wish_vec.z += 1 if Input.is_key_pressed(KEY_D) else 0
 
-	translation += global_transform.basis * wish_vec * delta * 2.0
+	translation += global_transform.basis * wish_vec * delta * move_speed
 
 	rotation = Vector3.ZERO
 	rotate(Vector3.UP, yaw)
@@ -26,3 +28,8 @@ func _input(event: InputEvent) -> void:
 		yaw -= event.relative.x * 0.0015
 		pitch -= event.relative.y * 0.0015
 		pitch = clamp(pitch, deg2rad(-89.9), deg2rad(89.9))
+	elif event is InputEventMouseButton:
+		if event.button_index == BUTTON_WHEEL_UP:
+			translation += global_transform.basis.z * -0.25;
+		elif event.button_index == BUTTON_WHEEL_DOWN:
+			translation += global_transform.basis.z * 0.25;
