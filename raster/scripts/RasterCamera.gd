@@ -1,12 +1,8 @@
 extends Camera
 
-# TODO: Move backface cull into C
+# TODO: Move backface cull into C (requires matrix inverse routines)
 # TODO: React to FOV flip change and update rasterizer
 # TODO: Rasterize AABBs to check against depth buffer
-
-signal render_triangles(triangles)
-signal rasterize_complete()
-signal profile_timestamps(timestamps)
 
 export(int) var raster_x_resolution = 256 setget set_raster_x_resolution
 export(int) var raster_y_resolution = 128 setget set_raster_y_resolution
@@ -20,6 +16,11 @@ func set_raster_y_resolution(new_raster_y_resolution):
 	if new_raster_y_resolution != raster_y_resolution:
 		raster_y_resolution = new_raster_y_resolution
 		Raster.set_resolution(raster_x_resolution, raster_y_resolution)
+
+func set_keep_aspect_mode(new_keep_aspect_mode) -> void:
+	.set_keep_aspect_mode(new_keep_aspect_mode)
+	print("set_keep_aspect_mode: ", new_keep_aspect_mode)
+	Raster.set_flip_fov(new_keep_aspect_mode == Camera.KEEP_WIDTH)
 
 func set_fov(new_fov) -> void:
 	.set_fov(new_fov)
@@ -40,6 +41,13 @@ func viewport_size_changed() -> void:
 func _ready() -> void:
 	get_viewport().connect("size_changed", self, "viewport_size_changed")
 	Raster.set_resolution(raster_x_resolution, raster_y_resolution);
+	Raster.set_flip_fov(get_keep_aspect_mode() == Camera.KEEP_WIDTH)
+	Raster.set_fov(get_fov())
+	Raster.set_z_near(get_znear())
+	Raster.set_z_far(get_zfar())
+
+	var view_size = get_viewport().size
+	Raster.set_aspect(view_size.x / view_size.y)
 
 func _process(delta) -> void:
 	var instances: Array = gather_instances()

@@ -61,6 +61,13 @@ void GDN_EXPORT godot_nativescript_init(void *p_handle)
     nativescript_api->godot_nativescript_register_method(p_handle, "Raster", "get_z_far",
                                                          attributes, get_z_far);
 
+    // set_flip_fov
+    godot_instance_method set_flip_fov = {NULL, NULL, NULL};
+    set_flip_fov.method = &raster_set_flip_fov;
+
+    nativescript_api->godot_nativescript_register_method(p_handle, "Raster", "set_flip_fov",
+                                                         attributes, set_flip_fov);
+
     // set_fov
     godot_instance_method set_resolution = {NULL, NULL, NULL};
     set_resolution.method = &raster_set_resolution;

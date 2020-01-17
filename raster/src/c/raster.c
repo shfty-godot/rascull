@@ -14,6 +14,7 @@
 //#define WIREFRAME
 
 ivec2 resolution = {256, 128};
+bool flip_aspect = false;
 float fov = 70.0f;
 float aspect = 1024.0f / 600.0f;
 float z_near = 0.05f;
@@ -238,7 +239,7 @@ void rasterize_triangles(void *p_user_data, void *p_triangles, int vertex_count)
     fvec3 *triangles = (fvec3 *)p_triangles;
 
     // Triangles to clip space
-    mat4 proj_mat = projection_matrix(fov, aspect, 0, 1, false);
+    mat4 proj_mat = projection_matrix(fov, aspect, 0, 1, flip_aspect);
 
     fvec3 *clip_triangles = malloc(vertex_count * sizeof(fvec3));
     for (int i = 0; i < vertex_count; ++i)

@@ -6,6 +6,7 @@
 #include <vector.h>
 
 ivec2 resolution;
+bool flip_aspect;
 float fov;
 float aspect;
 float z_near;

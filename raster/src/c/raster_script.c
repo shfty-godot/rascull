@@ -61,6 +61,14 @@ godot_variant raster_set_resolution(godot_object *p_instance, void *p_method_dat
     RETURN_NULL_VARIANT();
 }
 
+godot_variant raster_set_flip_fov(godot_object *p_instance, void *p_method_data,
+                             void *p_user_data, int p_num_args, godot_variant **p_args)
+{
+    flip_aspect = api->godot_variant_as_bool(p_args[0]);
+
+    RETURN_NULL_VARIANT();
+}
+
 godot_variant raster_set_fov(godot_object *p_instance, void *p_method_data,
                              void *p_user_data, int p_num_args, godot_variant **p_args)
 {

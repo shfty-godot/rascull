@@ -15,6 +15,9 @@ godot_variant raster_get_z_far(godot_object *p_instance, void *p_method_data,
 godot_variant raster_set_resolution(godot_object *p_instance, void *p_method_data,
                                     void *p_user_data, int p_num_args, godot_variant **p_args);
 
+godot_variant raster_set_flip_fov(godot_object *p_instance, void *p_method_data,
+                             void *p_user_data, int p_num_args, godot_variant **p_args);
+
 godot_variant raster_set_fov(godot_object *p_instance, void *p_method_data,
                              void *p_user_data, int p_num_args, godot_variant **p_args);
 

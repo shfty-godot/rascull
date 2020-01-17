@@ -1,11 +1,12 @@
-[gd_scene load_steps=9 format=2]
+[gd_scene load_steps=10 format=2]
 
 [ext_resource path="res://scripts/TriangleMesh.gd" type="Script" id=1]
 [ext_resource path="res://materials/blue.tres" type="Material" id=2]
-[ext_resource path="res://instances/RasterCameraController.tscn" type="PackedScene" id=3]
-[ext_resource path="res://instances/UI.tscn" type="PackedScene" id=4]
+[ext_resource path="res://scripts/Controller.gd" type="Script" id=3]
+[ext_resource path="res://scripts/RasterCamera.gd" type="Script" id=4]
+[ext_resource path="res://instances/UI.tscn" type="PackedScene" id=5]
 
-[sub_resource type="ArrayMesh" id=3]
+[sub_resource type="ArrayMesh" id=5]
 surfaces/0 = {
 "aabb": AABB( -0.5, -0.5, 0, 1, 1.00001, 1e-005 ),
 "array_data": PoolByteArray( 0, 0, 0, 191, 0, 0, 0, 63, 0, 0, 0, 0, 0, 0, 0, 63, 0, 0, 0, 63, 0, 0, 0, 0, 0, 0, 0, 191, 0, 0, 0, 191, 0, 0, 0, 0 ),
@@ -18,16 +19,16 @@ surfaces/0 = {
 "vertex_count": 3
 }
 
-[sub_resource type="PlaneMesh" id=4]
+[sub_resource type="PlaneMesh" id=2]
 size = Vector2( 1, 1 )
 
-[sub_resource type="CylinderMesh" id=1]
+[sub_resource type="CylinderMesh" id=3]
 material = ExtResource( 2 )
 height = 4.0
 radial_segments = 8
 rings = 1
 
-[sub_resource type="SphereMesh" id=2]
+[sub_resource type="SphereMesh" id=4]
 material = ExtResource( 2 )
 radial_segments = 8
 rings = 4
@@ -48,7 +49,7 @@ depth = 12.0
 "occluder",
 ]]
 transform = Transform( 0.707107, -0.707107, 0, 0.707107, 0.707107, 0, 0, 0, 1, -2.67971, 0, -3.53656 )
-mesh = SubResource( 3 )
+mesh = SubResource( 5 )
 material/0 = null
 script = ExtResource( 1 )
 
@@ -56,23 +57,31 @@ script = ExtResource( 1 )
 "occluder",
 ]]
 transform = Transform( 1, 0, 0, 0, -4.37114e-008, -1, 0, 1, -4.37114e-008, 2.98546, 0, -3.21968 )
-mesh = SubResource( 4 )
+mesh = SubResource( 2 )
 material/0 = ExtResource( 2 )
 
 [node name="CylinderMesh" type="MeshInstance" parent="Meshes" groups=[
 "occluder",
 ]]
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -4 )
-mesh = SubResource( 1 )
+mesh = SubResource( 3 )
 material/0 = null
 
 [node name="Sphere" type="MeshInstance" parent="Meshes" groups=[
 "occluder",
 ]]
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0.218572, 0, -7.84628 )
-mesh = SubResource( 2 )
+mesh = SubResource( 4 )
 material/0 = null
 
-[node name="RasterCameraController" parent="." instance=ExtResource( 3 )]
+[node name="RasterCameraController" type="Spatial" parent="."]
+script = ExtResource( 3 )
 
-[node name="UI" parent="." instance=ExtResource( 4 )]
+[node name="RasterCamera" type="Camera" parent="RasterCameraController"]
+script = ExtResource( 4 )
+
+[node name="UI" parent="." instance=ExtResource( 5 )]
+[connection signal="fov_changed" from="UI" to="RasterCameraController/RasterCamera" method="set_fov"]
+[connection signal="keep_aspect_changed" from="UI" to="RasterCameraController/RasterCamera" method="set_keep_aspect_mode"]
+[connection signal="z_far_changed" from="UI" to="RasterCameraController/RasterCamera" method="set_zfar"]
+[connection signal="z_near_changed" from="UI" to="RasterCameraController/RasterCamera" method="set_znear"]
