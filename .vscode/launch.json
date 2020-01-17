@@ -7,7 +7,7 @@
         {
             "name": "Launch",
             "program": "C:/OtherPrograms/Godot/Godot_v3.1.2-stable_win64.exe",
-            "args": ["--path", "${workspaceRoot}/raster", "${workspaceRoot}/raster/Main.tscn"],
+            "args": ["--path", "${workspaceRoot}/raster", "${workspaceRoot}/raster/scenes/main.tscn"],
             "type": "cppvsdbg",
             "request": "launch"
         },
