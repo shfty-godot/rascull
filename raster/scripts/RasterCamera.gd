@@ -1,7 +1,6 @@
 extends Camera
 
 # TODO: Move backface cull into C (requires matrix inverse routines)
-# TODO: React to FOV flip change and update rasterizer
 # TODO: Rasterize AABBs to check against depth buffer
 
 export(int) var raster_x_resolution = 256 setget set_raster_x_resolution
