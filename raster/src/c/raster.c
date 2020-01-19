@@ -79,22 +79,21 @@ int bresenham_line(void *p_user_data, void *p_points, void *p_depths, fvec3 v0, 
     }
 
     // Depth
-    fvec3 v0v1 = fvec3_sub(v1, v0);
-    v0v1.z = 0;
-    float ifl = 1.0f / fvec3_length(v0v1);
-
     fvec3 f0 = {(float)v0.x, (float)v0.y, 0};
     fvec3 f1 = {(float)v1.x, (float)v1.y, 0};
+    fvec3 f0f1 = fvec3_sub(f1, f0);
+    float fl = fvec3_length(f0f1);
 
     // Step along line
     int e = 2 * len_y - len_x;
     for (int i = 0; i < len_x; ++i)
     {
         fvec3 p = {(float)x, (float)y, 0};
+        fvec3 interp = fvec3_sub(f0, p);
+        float interp_len = fvec3_length(interp);
+        float alpha = interp_len / fl;
 
-        float alpha = fvec3_length(fvec3_sub(f0, p)) * ifl;
-        float beta = fvec3_length(fvec3_sub(f1, p)) * ifl;
-        float depth = v1.z * alpha + v0.z * beta;
+        float depth = v0.z + (v1.z - v0.z) * alpha;
 
         render_pixel(p_user_data, x, y, depth);
 
@@ -162,21 +161,38 @@ void bresenham_triangle(void *p_user_data, fvec3 v0, fvec3 v1, fvec3 v2)
         int bx = points_b[y];
         float bd = depths_b[y];
 
-        int min_x = MIN(ax, bx);
-        min_x = MAX(min_x, 0);
+        int x0;
+        int x1;
+        float d0;
+        float d1;
 
-        int max_x = MAX(ax, bx);
-        max_x = MIN(max_x, resolution.x - 1);
+        if(ax < bx) {
+            x0 = ax;
+            d0 = ad;
+            x1 = bx;
+            d1 = bd;
+        }
+        else if(ax > bx) {
+            x0 = bx;
+            d0 = bd;
+            x1 = ax;
+            d1 = ad;
+        }
+        else {
+            continue;
+        }
+
+        x0 = MAX(x0, 0);
+        x1 = MIN(x1, resolution.x - 1);
 
         int row_y = delta_sign > 0 ? y + (int)v0.y : (int)v0.y - y;
 
-        float il = 1.0f / ((float)max_x - (float)min_x);
+        float il = 1.0f / ((float)x1 - (float)x0);
 
-        for (int x = min_x; x < max_x; ++x)
+        for (int x = x0; x < x1; ++x)
         {
-            float alpha = ((float)x - (float)min_x) * il;
-            float beta = ((float)max_x - (float)x) * il;
-            float depth = (ad * alpha + bd * beta);
+            float alpha = ((float)x - (float)x0) * il;
+            float depth = d0 + alpha * (d1 - d0);
             render_pixel(p_user_data, x, row_y, depth);
         }
     }
@@ -223,10 +239,11 @@ void bresenham_triangles(void *p_user_data, void *p_triangles, int vertex_count)
         }
         else
         {
+            float alpha = (v1.y - v0.y) / (v2.y - v0.y);
             fvec3 v3 = {
-                v0.x + ((v1.y - v0.y) / (v2.y - v0.y)) * (v2.x - v0.x),
+                v0.x + alpha * (v2.x - v0.x),
                 v1.y,
-                v1.z
+                v0.z + alpha * (v2.z - v0.z)
             };
             bresenham_triangle(p_user_data, v0, v1, v3);
             bresenham_triangle(p_user_data, v2, v3, v1);
