@@ -1,39 +1,64 @@
-[gd_scene load_steps=10 format=2]
+[gd_scene load_steps=13 format=2]
 
-[ext_resource path="res://scripts/TriangleMesh.gd" type="Script" id=1]
-[ext_resource path="res://materials/blue.tres" type="Material" id=2]
-[ext_resource path="res://scripts/Controller.gd" type="Script" id=3]
-[ext_resource path="res://scripts/RasterCamera.gd" type="Script" id=4]
-[ext_resource path="res://instances/UI.tscn" type="PackedScene" id=5]
+[ext_resource path="res://scripts/Controller.gd" type="Script" id=1]
+[ext_resource path="res://scripts/RasterCamera.gd" type="Script" id=2]
+[ext_resource path="res://materials/red_transparent.tres" type="Material" id=3]
+[ext_resource path="res://scripts/FrustumRenderer.gd" type="Script" id=4]
+[ext_resource path="res://instances/CameraMesh.tscn" type="PackedScene" id=5]
+[ext_resource path="res://materials/blue.tres" type="Material" id=6]
+[ext_resource path="res://instances/UI.tscn" type="PackedScene" id=7]
 
-[sub_resource type="ArrayMesh" id=5]
+[sub_resource type="ArrayMesh" id=9]
 surfaces/0 = {
-"aabb": AABB( -0.5, -0.5, 0, 1, 1.00001, 1e-005 ),
-"array_data": PoolByteArray( 0, 0, 0, 191, 0, 0, 0, 63, 0, 0, 0, 0, 0, 0, 0, 63, 0, 0, 0, 63, 0, 0, 0, 0, 0, 0, 0, 191, 0, 0, 0, 191, 0, 0, 0, 0 ),
+"aabb": AABB( -170.663, -99.9977, -99.9977, 341.325, 199.995, 99.9477 ),
+"array_data": PoolByteArray( 62, 195, 174, 189, 205, 204, 76, 61, 205, 204, 76, 189, 62, 195, 174, 61, 205, 204, 76, 61, 205, 204, 76, 189, 62, 195, 174, 61, 205, 204, 76, 189, 205, 204, 76, 189, 62, 195, 174, 189, 205, 204, 76, 61, 205, 204, 76, 189, 62, 195, 174, 61, 205, 204, 76, 189, 205, 204, 76, 189, 62, 195, 174, 189, 205, 204, 76, 189, 205, 204, 76, 189, 165, 169, 42, 67, 206, 254, 199, 66, 206, 254, 199, 194, 165, 169, 42, 195, 206, 254, 199, 66, 206, 254, 199, 194, 165, 169, 42, 195, 206, 254, 199, 194, 206, 254, 199, 194, 165, 169, 42, 67, 206, 254, 199, 66, 206, 254, 199, 194, 165, 169, 42, 195, 206, 254, 199, 194, 206, 254, 199, 194, 165, 169, 42, 67, 206, 254, 199, 194, 206, 254, 199, 194, 165, 169, 42, 195, 206, 254, 199, 66, 206, 254, 199, 194, 62, 195, 174, 189, 205, 204, 76, 61, 205, 204, 76, 189, 62, 195, 174, 189, 205, 204, 76, 189, 205, 204, 76, 189, 165, 169, 42, 195, 206, 254, 199, 66, 206, 254, 199, 194, 62, 195, 174, 189, 205, 204, 76, 189, 205, 204, 76, 189, 165, 169, 42, 195, 206, 254, 199, 194, 206, 254, 199, 194, 62, 195, 174, 61, 205, 204, 76, 61, 205, 204, 76, 189, 165, 169, 42, 67, 206, 254, 199, 66, 206, 254, 199, 194, 165, 169, 42, 67, 206, 254, 199, 194, 206, 254, 199, 194, 62, 195, 174, 61, 205, 204, 76, 61, 205, 204, 76, 189, 165, 169, 42, 67, 206, 254, 199, 194, 206, 254, 199, 194, 62, 195, 174, 61, 205, 204, 76, 189, 205, 204, 76, 189, 62, 195, 174, 189, 205, 204, 76, 61, 205, 204, 76, 189, 165, 169, 42, 195, 206, 254, 199, 66, 206, 254, 199, 194, 165, 169, 42, 67, 206, 254, 199, 66, 206, 254, 199, 194, 62, 195, 174, 189, 205, 204, 76, 61, 205, 204, 76, 189, 165, 169, 42, 67, 206, 254, 199, 66, 206, 254, 199, 194, 62, 195, 174, 61, 205, 204, 76, 61, 205, 204, 76, 189, 62, 195, 174, 61, 205, 204, 76, 189, 205, 204, 76, 189, 165, 169, 42, 67, 206, 254, 199, 194, 206, 254, 199, 194, 165, 169, 42, 195, 206, 254, 199, 194, 206, 254, 199, 194, 62, 195, 174, 61, 205, 204, 76, 189, 205, 204, 76, 189, 165, 169, 42, 195, 206, 254, 199, 194, 206, 254, 199, 194, 62, 195, 174, 189, 205, 204, 76, 189, 205, 204, 76, 189 ),
 "array_index_data": PoolByteArray(  ),
 "blend_shape_data": [  ],
 "format": 97281,
 "index_count": 0,
 "primitive": 4,
 "skeleton_aabb": [  ],
-"vertex_count": 3
+"vertex_count": 36
 }
 
-[sub_resource type="PlaneMesh" id=2]
-size = Vector2( 1, 1 )
+[sub_resource type="PrismMesh" id=5]
+material = ExtResource( 6 )
 
-[sub_resource type="CylinderMesh" id=3]
-material = ExtResource( 2 )
+[sub_resource type="CylinderMesh" id=6]
+material = ExtResource( 6 )
+top_radius = 0.5
+bottom_radius = 0.5
+height = 1.0
+
+[sub_resource type="CylinderMesh" id=7]
+material = ExtResource( 6 )
 height = 4.0
 radial_segments = 8
 rings = 1
 
-[sub_resource type="SphereMesh" id=4]
-material = ExtResource( 2 )
+[sub_resource type="SphereMesh" id=8]
+material = ExtResource( 6 )
 radial_segments = 8
 rings = 4
 
 [node name="Main" type="Spatial"]
+
+[node name="RasterCameraController" type="Spatial" parent="."]
+script = ExtResource( 1 )
+
+[node name="RasterCamera" type="Camera" parent="RasterCameraController"]
+cull_mask = 1048573
+fov = 90.0
+script = ExtResource( 2 )
+
+[node name="FrustumRenderer" type="MeshInstance" parent="RasterCameraController/RasterCamera"]
+layers = 2
+material_override = ExtResource( 3 )
+mesh = SubResource( 9 )
+material/0 = null
+script = ExtResource( 4 )
+
+[node name="CameraMesh" parent="RasterCameraController/RasterCamera" instance=ExtResource( 5 )]
 
 [node name="Meshes" type="Spatial" parent="."]
 
@@ -47,40 +72,62 @@ depth = 12.0
 [node name="TriangleMesh" type="MeshInstance" parent="Meshes" groups=[
 "occluder",
 ]]
-transform = Transform( 0.707107, -0.707107, 0, 0.707107, 0.707107, 0, 0, 0, 1, -2.67971, 0, -3.53656 )
+transform = Transform( 0.707107, -0.707107, 0, 0.707107, 0.707107, 0, 0, 0, 1, -3.67971, 0, -3.53656 )
 mesh = SubResource( 5 )
 material/0 = null
-script = ExtResource( 1 )
 
 [node name="PlaneMesh" type="MeshInstance" parent="Meshes" groups=[
 "occluder",
 ]]
-transform = Transform( 1, 0, 0, 0, -4.37114e-008, -1, 0, 1, -4.37114e-008, 2.98546, 0, -3.21968 )
-mesh = SubResource( 2 )
-material/0 = ExtResource( 2 )
+transform = Transform( 1, 0, 0, 0, 0.999999, 0, 0, 0, 1, 4.09044, -0.735656, -3.21968 )
+mesh = SubResource( 6 )
+material/0 = null
 
 [node name="CylinderMesh" type="MeshInstance" parent="Meshes" groups=[
 "occluder",
 ]]
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -4 )
-mesh = SubResource( 3 )
+mesh = SubResource( 7 )
 material/0 = null
 
 [node name="Sphere" type="MeshInstance" parent="Meshes" groups=[
 "occluder",
 ]]
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0.218572, 0, -7.84628 )
-mesh = SubResource( 4 )
+mesh = SubResource( 8 )
 material/0 = null
 
-[node name="RasterCameraController" type="Spatial" parent="."]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 0, 0 )
-script = ExtResource( 3 )
+[node name="Control" type="Control" parent="."]
+margin_right = 1024.0
+margin_bottom = 600.0
+rect_min_size = Vector2( 1024, 600 )
 
-[node name="RasterCamera" type="Camera" parent="RasterCameraController"]
-script = ExtResource( 4 )
+[node name="Panel" type="Panel" parent="Control"]
+anchor_left = 1.0
+anchor_right = 1.0
+margin_left = -286.0
+margin_top = 10.0
+margin_right = -10.0
+margin_bottom = 158.0
 
-[node name="UI" parent="." instance=ExtResource( 5 )]
+[node name="ViewportContainer" type="ViewportContainer" parent="Control/Panel"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_left = 10.0
+margin_top = 10.0
+margin_right = 54.0
+margin_bottom = 62.0
+
+[node name="Viewport" type="Viewport" parent="Control/Panel/ViewportContainer"]
+size = Vector2( 256, 128 )
+handle_input_locally = false
+render_target_update_mode = 3
+
+[node name="Camera" type="Camera" parent="Control/Panel/ViewportContainer/Viewport"]
+transform = Transform( 0.849321, -0.175596, 0.497815, 0, 0.943051, 0.332647, -0.527876, -0.282524, 0.800954, 5.46591, 1.74348, 0 )
+current = true
+
+[node name="UI" parent="." instance=ExtResource( 7 )]
 [connection signal="fov_changed" from="UI" to="RasterCameraController/RasterCamera" method="set_fov"]
 [connection signal="keep_aspect_changed" from="UI" to="RasterCameraController/RasterCamera" method="set_keep_aspect_mode"]
 [connection signal="z_far_changed" from="UI" to="RasterCameraController/RasterCamera" method="set_zfar"]

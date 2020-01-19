@@ -138,17 +138,17 @@ anchor_left = 1.0
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-margin_left = -544.0
-margin_top = -290.0
-margin_right = -12.0011
-margin_bottom = -14.0002
+margin_left = -284.0
+margin_top = -156.0
+margin_right = -8.0
+margin_bottom = -8.0
 
 [node name="RasterVisualizer" type="TextureRect" parent="VisualizerPanel"]
 margin_left = 10.0
 margin_top = 10.0
-margin_right = 256.0
-margin_bottom = 128.0
-rect_min_size = Vector2( 512, 256 )
+margin_right = 266.0
+margin_bottom = 138.0
+rect_min_size = Vector2( 256, 128 )
 expand = true
 stretch_mode = 5
 script = ExtResource( 3 )

@@ -1,0 +1,31 @@
+[gd_scene format=2]
+
+[node name="Control" type="Control"]
+margin_right = 1024.0
+margin_bottom = 600.0
+rect_min_size = Vector2( 1024, 600 )
+
+[node name="Panel" type="Panel" parent="."]
+anchor_left = 1.0
+anchor_right = 1.0
+margin_left = -286.0
+margin_top = 10.0
+margin_right = -10.0
+margin_bottom = 158.0
+
+[node name="ViewportContainer" type="ViewportContainer" parent="Panel"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_left = 10.0
+margin_top = 10.0
+margin_right = 54.0
+margin_bottom = 62.0
+
+[node name="Viewport" type="Viewport" parent="Panel/ViewportContainer"]
+size = Vector2( 256, 128 )
+handle_input_locally = false
+render_target_update_mode = 3
+
+[node name="Camera" type="Camera" parent="Panel/ViewportContainer/Viewport"]
+transform = Transform( 0.849321, -0.175596, 0.497815, 0, 0.943051, 0.332647, -0.527876, -0.282524, 0.800954, 5.46591, 1.74348, 0 )
+current = true

@@ -37,21 +37,119 @@ void set_resolution(void *p_user_data, int x, int y)
 void clear_depth_buffer(void *p_user_data)
 {
     user_data_struct *user_data = (user_data_struct *)p_user_data;
-    for (int i = 0; i < get_pixel_count(); ++i) {
+    for (int i = 0; i < get_pixel_count(); ++i)
+    {
         user_data->depth_buffer[i] = z_far;
     }
 }
 
-inline void render_pixel(void *p_user_data, int x, int y, float depth)
+void verts_to_clip_space(fvec3 *p_triangles, int vertex_count)
 {
-    user_data_struct *user_data = (user_data_struct *)p_user_data;
-    int idx = x + (y * resolution.x);
-    if(depth < user_data->depth_buffer[idx]) {
-        user_data->depth_buffer[idx] = depth;
+    // Triangles to clip space
+    mat4 proj_mat = projection_matrix(fov, aspect, 0, 1, flip_aspect);
+
+    for (int i = 0; i < vertex_count; ++i)
+    {
+        fvec3 v = p_triangles[i];
+        fvec4 cv = mat4_mul_fvec4(proj_mat, (fvec4){v.x, v.y, v.z, 1.0});
+        p_triangles[i] = (fvec3){cv.x, cv.y, cv.z};
     }
 }
 
-int bresenham_line(void *p_user_data, void *p_points, void *p_depths, fvec3 v0, fvec3 v1)
+fvec3 *clip_triangles(fvec3 *p_triangles, int *p_vertex_count)
+{
+    int vertex_count = *p_vertex_count;
+
+    // Clip triangles
+    fvec3 *clipped_triangles = (fvec3 *)malloc(0);
+    int clipped_vertex_count = 0;
+
+    for (int i = 0; i < vertex_count; i += 3)
+    {
+        fvec3 np = fvec3_normalize((fvec3){0.0f, 0.0f, -1.0f});
+        fvec3 fp = fvec3_normalize((fvec3){0.0f, 0.0f, 1.0f});
+        fvec3 rp = fvec3_normalize((fvec3){1.0f, 0.0f, -1.0f});
+        fvec3 lp = fvec3_normalize((fvec3){-1.0f, 0.0f, -1.0f});
+        fvec3 tp = fvec3_normalize((fvec3){0.0f, 1.0f, -1.0f});
+        fvec3 bp = fvec3_normalize((fvec3){0.0f, -1.0f, -1.0f});
+
+        fvec3 *clipped = malloc(sizeof(fvec3) * 3);
+        clipped[0] = p_triangles[i];
+        clipped[1] = p_triangles[i + 1];
+        clipped[2] = p_triangles[i + 2];
+
+        int count = 3;
+        clipped = clip_polygon(clipped, count, np, -z_near, &count);
+        clipped = clip_polygon(clipped, count, fp, z_far, &count);
+        clipped = clip_polygon(clipped, count, lp, 0.0, &count);
+        clipped = clip_polygon(clipped, count, rp, 0.0, &count);
+        clipped = clip_polygon(clipped, count, tp, 0.0, &count);
+        clipped = clip_polygon(clipped, count, bp, 0.0, &count);
+
+        clipped_triangles = realloc(clipped_triangles, sizeof(fvec3) * (clipped_vertex_count + 3 * count));
+
+        for (int vi = 1; vi < count - 1; ++vi)
+        {
+            clipped_triangles[clipped_vertex_count++] = clipped[0];
+            clipped_triangles[clipped_vertex_count++] = clipped[vi];
+            clipped_triangles[clipped_vertex_count++] = clipped[vi + 1];
+        }
+
+        free(clipped);
+    }
+
+    free(p_triangles);
+
+    *p_vertex_count = clipped_vertex_count;
+
+    return clipped_triangles;
+}
+
+void verts_to_screen_space(fvec3 *p_triangles, int vertex_count)
+{
+    for (int i = 0; i < vertex_count; ++i)
+    {
+        fvec3 vertex = p_triangles[i];
+        vertex.y *= -1.0f;
+
+        vertex.x += 1.0f;
+        vertex.y += 1.0f;
+
+        vertex.x *= ((float)resolution.x - 0.5f) * 0.5f;
+        vertex.y *= ((float)resolution.y - 0.5f) * 0.5f;
+
+        p_triangles[i] = vertex;
+    }
+}
+
+void verts_to_ndc(fvec3 *p_triangles, int vertex_count)
+{
+    // Perspective divide
+    for (int i = 0; i < vertex_count; ++i)
+    {
+        p_triangles[i] = fvec3_div(p_triangles[i], (fvec3){p_triangles[i].z, p_triangles[i].z, 1.0});
+    }
+}
+
+// Rasterization
+inline bool render_pixel(void *p_user_data, int x, int y, float depth, bool depth_test)
+{
+    user_data_struct *user_data = (user_data_struct *)p_user_data;
+    int idx = x + (y * resolution.x);
+    if (depth < user_data->depth_buffer[idx])
+    {
+        if (depth_test)
+        {
+            return true;
+        }
+
+        user_data->depth_buffer[idx] = depth;
+    }
+
+    return false;
+}
+
+bool bresenham_line(void *p_user_data, void *p_points, void *p_depths, fvec3 v0, fvec3 v1, bool depth_test, int *o_point_count)
 {
     user_data_struct *user_data = (user_data_struct *)p_user_data;
     int *points = (int *)p_points;
@@ -95,7 +193,11 @@ int bresenham_line(void *p_user_data, void *p_points, void *p_depths, fvec3 v0, 
 
         float depth = v0.z + (v1.z - v0.z) * alpha;
 
-        render_pixel(p_user_data, x, y, depth);
+        bool success = render_pixel(p_user_data, x, y, depth, depth_test);
+        if (depth_test && success)
+        {
+            return true;
+        }
 
         if (points != NULL)
         {
@@ -133,28 +235,20 @@ int bresenham_line(void *p_user_data, void *p_points, void *p_depths, fvec3 v0, 
         e += 2 * len_y;
     }
 
-    return head;
+    if (o_point_count != NULL)
+    {
+        *o_point_count = head;
+    }
+
+    return false;
 }
 
-void bresenham_triangle(void *p_user_data, fvec3 v0, fvec3 v1, fvec3 v2)
+bool fill_triangle(void *p_user_data, fvec3 v0, fvec3 v1, int *points_a, int *points_b, float *depths_a, float *depths_b, int point_count, bool depth_test)
 {
-    user_data_struct *user_data = (user_data_struct *)p_user_data;
-
-    int *points_a = (int *)malloc(resolution.y * sizeof(int));
-    int *points_b = (int *)malloc(resolution.y * sizeof(int));
-
-    float *depths_a = (float *)malloc(resolution.y * sizeof(float));
-    float *depths_b = (float *)malloc(resolution.y * sizeof(float));
-
-    int point_count_a = bresenham_line(p_user_data, points_a, depths_a, v0, v1);
-    int point_count_b = bresenham_line(p_user_data, points_b, depths_b, v0, v2);
-    bresenham_line(p_user_data, NULL, NULL, v1, v2);
-
-#ifndef WIREFRAME
     int delta_y = (int)v1.y - (int)v0.y;
     int delta_sign = sign(delta_y);
 
-    for (int y = 0; y < point_count_a; ++y)
+    for (int y = 0; y < point_count; ++y)
     {
         int ax = points_a[y];
         float ad = depths_a[y];
@@ -166,19 +260,22 @@ void bresenham_triangle(void *p_user_data, fvec3 v0, fvec3 v1, fvec3 v2)
         float d0;
         float d1;
 
-        if(ax < bx) {
+        if (ax < bx)
+        {
             x0 = ax;
             d0 = ad;
             x1 = bx;
             d1 = bd;
         }
-        else if(ax > bx) {
+        else if (ax > bx)
+        {
             x0 = bx;
             d0 = bd;
             x1 = ax;
             d1 = ad;
         }
-        else {
+        else
+        {
             continue;
         }
 
@@ -193,16 +290,59 @@ void bresenham_triangle(void *p_user_data, fvec3 v0, fvec3 v1, fvec3 v2)
         {
             float alpha = ((float)x - (float)x0) * il;
             float depth = d0 + alpha * (d1 - d0);
-            render_pixel(p_user_data, x, row_y, depth);
+            bool success = render_pixel(p_user_data, x, row_y, depth, depth_test);
+            if (depth_test && success)
+            {
+                return true;
+            }
         }
     }
+
+    return false;
+}
+
+#define BT_CLEANUP() \
+    free(points_a);  \
+    free(points_b);  \
+    free(depths_a);  \
+    free(depths_b);
+#define BT_TEST_EARLY_OUT()    \
+    if (depth_test && success) \
+    {                          \
+        BT_CLEANUP()           \
+        return true;           \
+    }
+
+bool bresenham_triangle(void *p_user_data, fvec3 v0, fvec3 v1, fvec3 v2, bool depth_test)
+{
+
+    user_data_struct *user_data = (user_data_struct *)p_user_data;
+
+    int *points_a = (int *)malloc(resolution.y * sizeof(int));
+    int *points_b = (int *)malloc(resolution.y * sizeof(int));
+
+    float *depths_a = (float *)malloc(resolution.y * sizeof(float));
+    float *depths_b = (float *)malloc(resolution.y * sizeof(float));
+
+    bool success = false;
+
+    int point_count;
+    success = bresenham_line(p_user_data, points_a, depths_a, v0, v1, depth_test, &point_count);
+    BT_TEST_EARLY_OUT()
+
+    success = bresenham_line(p_user_data, points_b, depths_b, v0, v2, depth_test, NULL);
+    BT_TEST_EARLY_OUT()
+
+    success = bresenham_line(p_user_data, NULL, NULL, v1, v2, depth_test, NULL);
+    BT_TEST_EARLY_OUT()
+
+#ifndef WIREFRAME
+    success = fill_triangle(p_user_data, v0, v1, points_a, points_b, depths_a, depths_b, point_count, depth_test);
+    BT_TEST_EARLY_OUT()
 #endif
 
-    free(points_a);
-    free(points_b);
-    
-    free(depths_a);
-    free(depths_b);
+    BT_CLEANUP()
+    return false;
 }
 
 int vertical_sort(const void *a, const void *b)
@@ -212,30 +352,39 @@ int vertical_sort(const void *a, const void *b)
     return va->y > vb->y ? 1 : -1;
 }
 
-void bresenham_triangles(void *p_user_data, void *p_triangles, int vertex_count)
+#define BTS_TEST_EARLY_OUT()   \
+    if (depth_test && success) \
+    {                          \
+        return true;           \
+    }
+bool bresenham_triangles(void *p_user_data, void *p_triangles, int vertex_count, bool depth_test)
 {
     fvec3 *triangles = (fvec3 *)p_triangles;
 
     for (int i = 0; i < vertex_count; i += 3)
     {
-        fvec3 v0 = triangles[i];
-        fvec3 v1 = triangles[i + 1];
-        fvec3 v2 = triangles[i + 2];
+        fvec3 t[] = {
+            triangles[i],
+            triangles[i + 1],
+            triangles[i + 2]};
 
-        fvec3 t[] = {v0, v1, v2};
         qsort(t, 3, sizeof(fvec3), vertical_sort);
 
-        v0 = t[0];
-        v1 = t[1];
-        v2 = t[2];
+        fvec3 v0 = t[0];
+        fvec3 v1 = t[1];
+        fvec3 v2 = t[2];
+
+        bool success = false;
 
         if ((int)v1.y == (int)v2.y)
         {
-            bresenham_triangle(p_user_data, v0, v1, v2);
+            success = bresenham_triangle(p_user_data, v0, v1, v2, depth_test);
+            BTS_TEST_EARLY_OUT()
         }
         else if ((int)v0.y == (int)v1.y)
         {
-            bresenham_triangle(p_user_data, v2, v0, v1);
+            success = bresenham_triangle(p_user_data, v2, v0, v1, depth_test);
+            BTS_TEST_EARLY_OUT()
         }
         else
         {
@@ -243,95 +392,15 @@ void bresenham_triangles(void *p_user_data, void *p_triangles, int vertex_count)
             fvec3 v3 = {
                 v0.x + alpha * (v2.x - v0.x),
                 v1.y,
-                v0.z + alpha * (v2.z - v0.z)
-            };
-            bresenham_triangle(p_user_data, v0, v1, v3);
-            bresenham_triangle(p_user_data, v2, v3, v1);
+                v0.z + alpha * (v2.z - v0.z)};
+
+            success = bresenham_triangle(p_user_data, v0, v1, v3, depth_test);
+            BTS_TEST_EARLY_OUT()
+
+            success = bresenham_triangle(p_user_data, v2, v3, v1, depth_test);
+            BTS_TEST_EARLY_OUT()
         }
     }
-}
 
-void rasterize_triangles(void *p_user_data, void *p_triangles, int vertex_count)
-{
-    fvec3 *triangles = (fvec3 *)p_triangles;
-
-    // Triangles to clip space
-    mat4 proj_mat = projection_matrix(fov, aspect, 0, 1, flip_aspect);
-
-    fvec3 *clip_triangles = malloc(vertex_count * sizeof(fvec3));
-    for (int i = 0; i < vertex_count; ++i)
-    {
-        fvec3 v = triangles[i];
-        fvec4 cv = mat4_mul_fvec4(proj_mat, (fvec4){v.x, v.y, v.z, 1.0});
-        clip_triangles[i] = (fvec3){cv.x, cv.y, cv.z};
-    }
-
-    // Clip triangles
-    fvec3 *clipped_triangles = (fvec3 *)malloc(0);
-    int clipped_vertex_count = 0;
-
-    for (int i = 0; i < vertex_count; i += 3)
-    {
-        fvec3 np = fvec3_normalize((fvec3){0.0f, 0.0f, -1.0f});
-        fvec3 fp = fvec3_normalize((fvec3){0.0f, 0.0f, 1.0f});
-        fvec3 rp = fvec3_normalize((fvec3){1.0f, 0.0f, -1.0f});
-        fvec3 lp = fvec3_normalize((fvec3){-1.0f, 0.0f, -1.0f});
-        fvec3 tp = fvec3_normalize((fvec3){0.0f, 1.0f, -1.0f});
-        fvec3 bp = fvec3_normalize((fvec3){0.0f, -1.0f, -1.0f});
-
-        fvec3 *clipped = malloc(sizeof(fvec3) * 3);
-        clipped[0] = clip_triangles[i];
-        clipped[1] = clip_triangles[i + 1];
-        clipped[2] = clip_triangles[i + 2];
-
-        int count = 3;
-        clipped = clip_polygon(clipped, count, np, -z_near, &count);
-        clipped = clip_polygon(clipped, count, fp, z_far, &count);
-        clipped = clip_polygon(clipped, count, lp, 0.0, &count);
-        clipped = clip_polygon(clipped, count, rp, 0.0, &count);
-        clipped = clip_polygon(clipped, count, tp, 0.0, &count);
-        clipped = clip_polygon(clipped, count, bp, 0.0, &count);
-
-        clipped_triangles = realloc(clipped_triangles, sizeof(fvec3) * (clipped_vertex_count + 3 * count));
-
-        for (int vi = 1; vi < count - 1; ++vi)
-        {
-            clipped_triangles[clipped_vertex_count++] = clipped[0];
-            clipped_triangles[clipped_vertex_count++] = clipped[vi];
-            clipped_triangles[clipped_vertex_count++] = clipped[vi + 1];
-        }
-
-        free(clipped);
-    }
-
-    free(clip_triangles);
-
-    // Perspective divide
-    for (int i = 0; i < clipped_vertex_count; ++i)
-    {
-        clipped_triangles[i] = fvec3_div(clipped_triangles[i], (fvec3){clipped_triangles[i].z, clipped_triangles[i].z, 1.0});
-    }
-
-    // Convert to screen space
-    fvec3 *screen_triangles = malloc(sizeof(fvec3) * clipped_vertex_count);
-    for (int i = 0; i < clipped_vertex_count; ++i)
-    {
-        fvec3 vertex = clipped_triangles[i];
-        vertex.y *= -1.0f;
-
-        vertex.x += 1.0f;
-        vertex.y += 1.0f;
-
-        vertex.x *= ((float)resolution.x - 0.5f) * 0.5f;
-        vertex.y *= ((float)resolution.y - 0.5f) * 0.5f;
-
-        screen_triangles[i] = vertex;
-    }
-
-    free(clipped_triangles);
-
-    clear_depth_buffer(p_user_data);
-    bresenham_triangles(p_user_data, screen_triangles, clipped_vertex_count);
-
-    free(screen_triangles);
+    return false;
 }

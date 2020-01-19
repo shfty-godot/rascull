@@ -8,9 +8,14 @@
 
 config_version=4
 
-_global_script_classes=[  ]
+_global_script_classes=[ {
+"base": "MeshInstance",
+"class": "FrustumRenderer",
+"language": "GDScript",
+"path": "res://scripts/FrustumRenderer.gd"
+} ]
 _global_script_class_icons={
-
+"FrustumRenderer": ""
 }
 
 [application]
@@ -23,10 +28,6 @@ config/icon="res://icon.png"
 
 Raster="*res://bin/raster.gdns"
 Profiler="*res://scripts/Profiler.gd"
-
-[display]
-
-window/size/always_on_top=true
 
 [rendering]
 

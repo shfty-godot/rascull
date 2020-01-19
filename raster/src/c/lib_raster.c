@@ -165,4 +165,11 @@ void GDN_EXPORT godot_nativescript_init(void *p_handle)
 
     nativescript_api->godot_nativescript_register_method(p_handle, "Raster", "rasterize_objects",
                                                          attributes, rasterize_objects);
+
+    // depth_test
+    godot_instance_method depth_test = {NULL, NULL, NULL};
+    depth_test.method = &raster_depth_test;
+
+    nativescript_api->godot_nativescript_register_method(p_handle, "Raster", "depth_test",
+                                                         attributes, depth_test);
 }

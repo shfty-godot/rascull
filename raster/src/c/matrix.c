@@ -14,6 +14,17 @@ mat4 mat4_identity()
     return out;
 }
 
+mat4 mat4_from_godot_pool_real_array(godot_pool_real_array *array)
+{
+    mat4 view_mat;
+    for (int mi = 0; mi < api->godot_pool_real_array_size(array); ++mi)
+    {
+        float v = api->godot_pool_real_array_get(array, mi);
+        view_mat.m[mi] = v;
+    }
+    return view_mat;
+}
+
 fvec4 mat4_mul_fvec4(mat4 m, fvec4 v)
 {
     fvec4 out;
@@ -23,7 +34,6 @@ fvec4 mat4_mul_fvec4(mat4 m, fvec4 v)
     out.w = m.m[3] * v.x + m.m[7] * v.y + m.m[11] * v.z + m.m[15] * v.w;
     return out;
 }
-
 float get_fovy(float fov_x, float aspect)
 {
     return (float)(RAD2DEG * atan(aspect * tan(DEG2RAD * fov_x * 0.5)) * 2.0);
