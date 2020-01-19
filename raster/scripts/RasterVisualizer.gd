@@ -1,4 +1,4 @@
-extends Control
+extends TextureRect
 
 export(int) var frame_rate = 30 setget set_frame_rate
 
@@ -23,20 +23,20 @@ func update_timer():
 	timer.start()
 
 func render():
-	var far_plane_inv = 1.0 / Raster.get_z_far()
+	if not is_visible_in_tree():
+		return
+
+	var z_near = Raster.get_z_near()
+	var near_far_inv = 1.0 / (Raster.get_z_far() - z_near)
 
 	var res  = Raster.get_resolution()
 
 	var depth_buffer = PoolByteArray()
 	for depth in Raster.get_depth_buffer():
-		depth_buffer.append((1.0 - (depth * far_plane_inv)) * 255.0)
+		var norm_depth = (depth - z_near) * near_far_inv
+		var inv_depth = 1.0 - norm_depth
+		depth_buffer.append(inv_depth * 255.0)
 
 	depth_image.create_from_data(res.x, res.y, false, Image.FORMAT_L8, depth_buffer)
-	depth_texture.create_from_image(depth_image);
-	update()
-
-func _draw():
-	if not depth_texture:
-		return
-
-	draw_texture(depth_texture, Vector2.ZERO)
+	depth_texture.create_from_image(depth_image, 0);
+	set_texture(depth_texture)

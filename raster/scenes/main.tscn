@@ -36,7 +36,6 @@ rings = 4
 [node name="Main" type="Spatial"]
 
 [node name="Meshes" type="Spatial" parent="."]
-editor/display_folded = true
 
 [node name="CSGBox" type="CSGBox" parent="Meshes"]
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -4 )
@@ -75,6 +74,7 @@ mesh = SubResource( 4 )
 material/0 = null
 
 [node name="RasterCameraController" type="Spatial" parent="."]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 0, 0 )
 script = ExtResource( 3 )
 
 [node name="RasterCamera" type="Camera" parent="RasterCameraController"]

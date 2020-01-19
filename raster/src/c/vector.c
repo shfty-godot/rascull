@@ -24,6 +24,15 @@ float fvec3_dot(fvec3 lhs, fvec3 rhs)
     return lhs.x * rhs.x + lhs.y * rhs.y + lhs.z * rhs.z;
 }
 
+fvec3 fvec3_cross(fvec3 lhs, fvec3 rhs)
+{
+    return (fvec3){
+        lhs.y * rhs.z - lhs.z * rhs.y,
+        lhs.z * rhs.x - lhs.x * rhs.z,
+        lhs.x * rhs.y - lhs.y * rhs.x,
+    };
+}
+
 fvec3 fvec3_add_float(const fvec3 lhs, const float rhs)
 {
     fvec3 result = {lhs.x + rhs, lhs.y + rhs, lhs.z + rhs};

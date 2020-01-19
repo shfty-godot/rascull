@@ -100,6 +100,7 @@ float fvec3_sqlen(fvec3 v);
 float fvec3_length(fvec3 v);
 fvec3 fvec3_normalize(fvec3 v);
 float fvec3_dot(fvec3 lhs, fvec3 rhs);
+fvec3 fvec3_cross(fvec3 lhs, fvec3 rhs);
 fvec3 fvec3_add_float(const fvec3 lhs, const float rhs);
 fvec3 fvec3_sub_float(const fvec3 lhs, const float rhs);
 fvec3 fvec3_mul_float(const fvec3 lhs, const float rhs);

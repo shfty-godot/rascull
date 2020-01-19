@@ -38,4 +38,21 @@ script = ExtResource( 3 )
 
 [node name="UI" parent="." instance=ExtResource( 4 )]
 
+[node name="VisualizerPanel" parent="UI" index="2"]
+margin_left = -555.0
+margin_top = -300.0
+margin_right = -20.0
+margin_bottom = -20.0
+
+[node name="RasterVisualizer" parent="UI/VisualizerPanel" index="0"]
+margin_right = 522.0
+margin_bottom = 266.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+stretch_mode = 1
+[connection signal="fov_changed" from="UI" to="Controller/RasterCamera" method="set_fov"]
+[connection signal="keep_aspect_changed" from="UI" to="Controller/RasterCamera" method="set_keep_aspect_mode"]
+[connection signal="z_far_changed" from="UI" to="Controller/RasterCamera" method="set_zfar"]
+[connection signal="z_near_changed" from="UI" to="Controller/RasterCamera" method="set_znear"]
+
 [editable path="UI"]

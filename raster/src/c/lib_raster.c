@@ -54,7 +54,14 @@ void GDN_EXPORT godot_nativescript_init(void *p_handle)
     nativescript_api->godot_nativescript_register_method(p_handle, "Raster", "get_resolution",
                                                          attributes, get_resolution);
 
-    // get_resolution
+    // get_z_near
+    godot_instance_method get_z_near = {NULL, NULL, NULL};
+    get_z_near.method = &raster_get_z_near;
+
+    nativescript_api->godot_nativescript_register_method(p_handle, "Raster", "get_z_near",
+                                                         attributes, get_z_near);
+
+    // get_z_far
     godot_instance_method get_z_far = {NULL, NULL, NULL};
     get_z_far.method = &raster_get_z_far;
 

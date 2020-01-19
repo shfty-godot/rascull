@@ -13,7 +13,7 @@ script = ExtResource( 1 )
 margin_left = 10.0
 margin_top = 10.0
 margin_right = 338.0
-margin_bottom = 60.0
+margin_bottom = 110.0
 
 [node name="ProfilerLabel" type="Label" parent="ProfilerPanel"]
 anchor_right = 1.0
@@ -138,17 +138,19 @@ anchor_left = 1.0
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-margin_left = -286.0
-margin_top = -158.0
-margin_right = -10.0
-margin_bottom = -10.0
+margin_left = -544.0
+margin_top = -290.0
+margin_right = -12.0011
+margin_bottom = -14.0002
 
-[node name="RasterVisualizer" type="Control" parent="VisualizerPanel"]
+[node name="RasterVisualizer" type="TextureRect" parent="VisualizerPanel"]
 margin_left = 10.0
 margin_top = 10.0
 margin_right = 256.0
 margin_bottom = 128.0
-rect_min_size = Vector2( 256, 128 )
+rect_min_size = Vector2( 512, 256 )
+expand = true
+stretch_mode = 5
 script = ExtResource( 3 )
 [connection signal="value_changed" from="CameraPanel/VBoxContainer/HBoxContainer/FOVSlider" to="." method="set_fov"]
 [connection signal="value_changed" from="CameraPanel/VBoxContainer/HBoxContainer2/NearPlaneSlider" to="." method="set_z_near"]

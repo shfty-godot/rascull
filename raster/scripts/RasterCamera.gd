@@ -1,7 +1,6 @@
 extends Camera
 
-# TODO: Move backface cull into C (requires matrix inverse routines)
-# TODO: Rasterize AABBs to check against depth buffer
+# TODO: Implement depth test functions for determining if triangles are visible
 
 export(int) var raster_x_resolution = 256 setget set_raster_x_resolution
 export(int) var raster_y_resolution = 128 setget set_raster_y_resolution
@@ -49,27 +48,29 @@ func _ready() -> void:
 	Raster.set_aspect(view_size.x / view_size.y)
 
 func _process(delta) -> void:
+	# Gather
+	var gather_start = OS.get_ticks_usec()
 	var instances: Array = gather_instances()
-	var instance_matrices_vertices: Array = get_object_matrices_vertices(instances)
-	var front_face_matrices_vertices: Array = cull_backface_matrices_vertices(instance_matrices_vertices)
+	var instance_matrices_vertices: Array = get_instances_matrices_vertices_aabb(instances)
+	var gather_time = OS.get_ticks_usec() - gather_start;
+
+	# Prepare matrices
+	var view_matrix = transform_to_matrix(global_transform)
+	var inv_view_matrix = transform_to_matrix(global_transform.inverse())
 
 	# Rasterize
-	var ts = OS.get_ticks_usec()
+	var rasterize_start = OS.get_ticks_usec()
+	Raster.rasterize_objects(instance_matrices_vertices, view_matrix, inv_view_matrix)
+	var rasterize_time = OS.get_ticks_usec() - rasterize_start;
 
-	var matrices_vertices = []
-	for matrix_vertices in front_face_matrices_vertices:
-		matrices_vertices.append([
-			matrix_vertices["matrix"],
-			matrix_vertices["vertices"]
-		]);
-
-	Raster.rasterize_objects(matrices_vertices, transform_to_matrix(global_transform.inverse()))
-
-	var es = OS.get_ticks_usec() - ts;
-
+	# Cull
+	var cull_start = OS.get_ticks_usec()
 	cull_instances(instances)
+	var cull_time = OS.get_ticks_usec() - cull_start;
 
-	Profiler.set_timestamp("rasterize", es)
+	Profiler.set_timestamp("gather", gather_time)
+	Profiler.set_timestamp("rasterize", rasterize_time)
+	Profiler.set_timestamp("cull", cull_time)
 
 func gather_instances() -> Array:
 	var frustum_instance_ids = VisualServer.instances_cull_convex(get_frustum(), get_world().get_scenario())
@@ -85,18 +86,93 @@ func gather_instances() -> Array:
 func should_gather_object(instance: VisualInstance) -> bool:
 	return instance.is_in_group("occluder")
 
-func get_object_matrices_vertices(objects) -> Array:
-	var object_transforms_vertices := []
+func get_instances_matrices_vertices(objects) -> Array:
+	var object_matrices_vertices := []
 	for child in objects:
 		if child is MeshInstance:
-			var mat = transform_to_matrix(child.global_transform)
-			object_transforms_vertices.append({
-				"transform": child.global_transform,
-				"matrix": mat,
-				"vertices": child.get_mesh().get_faces()
-			})
+			object_matrices_vertices.append([
+				transform_to_matrix(child.global_transform),
+				transform_to_matrix(child.global_transform.inverse()),
+				child.get_mesh().get_faces()
+			])
 
-	return object_transforms_vertices
+	return object_matrices_vertices
+
+func get_instances_matrices_vertices_aabb(objects) -> Array:
+	var object_matrices_vertices := []
+	for child in objects:
+		if child is MeshInstance:
+			object_matrices_vertices.append([
+				transform_to_matrix(child.global_transform),
+				transform_to_matrix(child.global_transform.inverse()),
+				instance_aabb_to_triangles(child)
+			])
+
+	return object_matrices_vertices
+
+func instance_aabb_to_triangles(instance: VisualInstance) -> PoolVector3Array:
+	var aabb = instance.get_aabb()
+	var triangles = PoolVector3Array()
+
+	var vertices = PoolVector3Array()
+	for i in range(0, 8):
+		vertices.append(aabb.get_endpoint(i))
+
+	# -X face
+	triangles.append(vertices[2])
+	triangles.append(vertices[1])
+	triangles.append(vertices[0])
+
+	triangles.append(vertices[1])
+	triangles.append(vertices[2])
+	triangles.append(vertices[3])
+
+	# +X face
+	triangles.append(vertices[5])
+	triangles.append(vertices[6])
+	triangles.append(vertices[4])
+
+	triangles.append(vertices[6])
+	triangles.append(vertices[5])
+	triangles.append(vertices[7])
+
+	# +Y face
+	triangles.append(vertices[6])
+	triangles.append(vertices[3])
+	triangles.append(vertices[2])
+
+	triangles.append(vertices[3])
+	triangles.append(vertices[6])
+	triangles.append(vertices[7])
+
+	# -Y face
+	triangles.append(vertices[1])
+	triangles.append(vertices[4])
+	triangles.append(vertices[0])
+
+	triangles.append(vertices[4])
+	triangles.append(vertices[1])
+	triangles.append(vertices[5])
+
+	# +Z face
+	triangles.append(vertices[5])
+	triangles.append(vertices[1])
+	triangles.append(vertices[7])
+
+	triangles.append(vertices[1])
+	triangles.append(vertices[3])
+	triangles.append(vertices[7])
+
+	# -Z face
+	triangles.append(vertices[0])
+	triangles.append(vertices[4])
+	triangles.append(vertices[6])
+
+	triangles.append(vertices[2])
+	triangles.append(vertices[0])
+	triangles.append(vertices[6])
+
+	return triangles
 
 func transform_to_matrix(transform: Transform) -> PoolRealArray:
 	var mat = PoolRealArray()
@@ -107,33 +183,6 @@ func transform_to_matrix(transform: Transform) -> PoolRealArray:
 		mat.append(0 if x < 3 else 1)
 
 	return mat
-
-func cull_backface_matrices_vertices(transforms_vertices: Array) -> Array:
-	var front_face_transforms_vertices := []
-
-	for transform_vertices in transforms_vertices:
-		var vertices = transform_vertices["vertices"]
-
-		front_face_transforms_vertices.append({
-			"vertices": [],
-			"matrix": transform_vertices["matrix"]
-		})
-
-		for tri_idx in range(0, vertices.size(), 3):
-			var v0 = vertices[tri_idx]
-			var v1 = vertices[tri_idx + 1]
-			var v2 = vertices[tri_idx + 2]
-
-			var vn = (v2 - v0).cross(v1 - v0).normalized()
-			var local_camera = transform_vertices["transform"].xform_inv(global_transform.origin)
-			var view_vector = (v0 - local_camera).normalized()
-
-			if vn.dot(view_vector) <= 0:
-				front_face_transforms_vertices[-1]["vertices"].append(v0)
-				front_face_transforms_vertices[-1]["vertices"].append(v1)
-				front_face_transforms_vertices[-1]["vertices"].append(v2)
-
-	return front_face_transforms_vertices
 
 func cull_instances(instances: Array) -> void:
 	for instance in instances:

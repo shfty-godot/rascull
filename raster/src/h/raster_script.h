@@ -9,6 +9,9 @@ void raster_destructor(godot_object *p_instance, void *p_method_data, void *p_us
 godot_variant raster_get_resolution(godot_object *p_instance, void *p_method_data,
                                     void *p_user_data, int p_num_args, godot_variant **p_args);
 
+godot_variant raster_get_z_near(godot_object *p_instance, void *p_method_data,
+                               void *p_user_data, int p_num_args, godot_variant **p_args);
+
 godot_variant raster_get_z_far(godot_object *p_instance, void *p_method_data,
                                void *p_user_data, int p_num_args, godot_variant **p_args);
 
