@@ -1,7 +1,5 @@
 extends Camera
 
-# TODO: Implement depth test functions for determining if triangles are visible
-
 export(int) var raster_x_resolution = 256 setget set_raster_x_resolution
 export(int) var raster_y_resolution = 128 setget set_raster_y_resolution
 
@@ -50,8 +48,9 @@ func _ready() -> void:
 func _process(delta) -> void:
 	# Gather
 	var gather_start = OS.get_ticks_usec()
-	var occluders: Array = gather_instances(funcref(self, "should_gather_occluder"))
-	var occludees: Array = gather_instances(funcref(self, "should_gather_occludee"))
+	var instance_ids: Array = gather_instance_ids()
+	var occluders: Array = gather_instances(instance_ids, funcref(self, "should_gather_occluder"))
+	var occludees: Array = gather_instances(instance_ids, funcref(self, "should_gather_occludee"))
 
 	var instance_matrices_vertices: Array = get_instances_matrices_vertices(occluders)
 	var gather_time = OS.get_ticks_usec() - gather_start;
@@ -74,11 +73,12 @@ func _process(delta) -> void:
 	Profiler.set_timestamp("rasterize", rasterize_time)
 	Profiler.set_timestamp("cull", cull_time)
 
-func gather_instances(gather_predicate: FuncRef) -> Array:
-	var frustum_instance_ids = VisualServer.instances_cull_convex(get_frustum(), get_world().get_scenario())
+func gather_instance_ids() -> Array:
+	return VisualServer.instances_cull_convex(get_frustum(), get_world().get_scenario())
 
+func gather_instances(instance_ids: Array, gather_predicate: FuncRef) -> Array:
 	var instances := []
-	for instance_id in frustum_instance_ids:
+	for instance_id in instance_ids:
 		var instance: VisualInstance = instance_from_id(instance_id)
 		if gather_predicate.call_func(instance):
 			instances.append(instance)

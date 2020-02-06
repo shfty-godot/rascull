@@ -8,7 +8,7 @@
 [ext_resource path="res://materials/blue.tres" type="Material" id=6]
 [ext_resource path="res://instances/UI.tscn" type="PackedScene" id=7]
 
-[sub_resource type="ArrayMesh" id=9]
+[sub_resource type="ArrayMesh" id=6]
 surfaces/0 = {
 "aabb": AABB( -170.663, -99.9977, -99.9977, 341.325, 199.995, 99.9477 ),
 "array_data": PoolByteArray( 62, 195, 174, 189, 205, 204, 76, 61, 205, 204, 76, 189, 62, 195, 174, 61, 205, 204, 76, 61, 205, 204, 76, 189, 62, 195, 174, 61, 205, 204, 76, 189, 205, 204, 76, 189, 62, 195, 174, 189, 205, 204, 76, 61, 205, 204, 76, 189, 62, 195, 174, 61, 205, 204, 76, 189, 205, 204, 76, 189, 62, 195, 174, 189, 205, 204, 76, 189, 205, 204, 76, 189, 165, 169, 42, 67, 206, 254, 199, 66, 206, 254, 199, 194, 165, 169, 42, 195, 206, 254, 199, 66, 206, 254, 199, 194, 165, 169, 42, 195, 206, 254, 199, 194, 206, 254, 199, 194, 165, 169, 42, 67, 206, 254, 199, 66, 206, 254, 199, 194, 165, 169, 42, 195, 206, 254, 199, 194, 206, 254, 199, 194, 165, 169, 42, 67, 206, 254, 199, 194, 206, 254, 199, 194, 165, 169, 42, 195, 206, 254, 199, 66, 206, 254, 199, 194, 62, 195, 174, 189, 205, 204, 76, 61, 205, 204, 76, 189, 62, 195, 174, 189, 205, 204, 76, 189, 205, 204, 76, 189, 165, 169, 42, 195, 206, 254, 199, 66, 206, 254, 199, 194, 62, 195, 174, 189, 205, 204, 76, 189, 205, 204, 76, 189, 165, 169, 42, 195, 206, 254, 199, 194, 206, 254, 199, 194, 62, 195, 174, 61, 205, 204, 76, 61, 205, 204, 76, 189, 165, 169, 42, 67, 206, 254, 199, 66, 206, 254, 199, 194, 165, 169, 42, 67, 206, 254, 199, 194, 206, 254, 199, 194, 62, 195, 174, 61, 205, 204, 76, 61, 205, 204, 76, 189, 165, 169, 42, 67, 206, 254, 199, 194, 206, 254, 199, 194, 62, 195, 174, 61, 205, 204, 76, 189, 205, 204, 76, 189, 62, 195, 174, 189, 205, 204, 76, 61, 205, 204, 76, 189, 165, 169, 42, 195, 206, 254, 199, 66, 206, 254, 199, 194, 165, 169, 42, 67, 206, 254, 199, 66, 206, 254, 199, 194, 62, 195, 174, 189, 205, 204, 76, 61, 205, 204, 76, 189, 165, 169, 42, 67, 206, 254, 199, 66, 206, 254, 199, 194, 62, 195, 174, 61, 205, 204, 76, 61, 205, 204, 76, 189, 62, 195, 174, 61, 205, 204, 76, 189, 205, 204, 76, 189, 165, 169, 42, 67, 206, 254, 199, 194, 206, 254, 199, 194, 165, 169, 42, 195, 206, 254, 199, 194, 206, 254, 199, 194, 62, 195, 174, 61, 205, 204, 76, 189, 205, 204, 76, 189, 165, 169, 42, 195, 206, 254, 199, 194, 206, 254, 199, 194, 62, 195, 174, 189, 205, 204, 76, 189, 205, 204, 76, 189 ),
@@ -21,22 +21,22 @@ surfaces/0 = {
 "vertex_count": 36
 }
 
-[sub_resource type="PrismMesh" id=5]
+[sub_resource type="PrismMesh" id=2]
 material = ExtResource( 6 )
 
-[sub_resource type="CylinderMesh" id=6]
+[sub_resource type="CylinderMesh" id=3]
 material = ExtResource( 6 )
 top_radius = 0.5
 bottom_radius = 0.5
 height = 1.0
 
-[sub_resource type="CylinderMesh" id=7]
+[sub_resource type="CylinderMesh" id=4]
 material = ExtResource( 6 )
 height = 4.0
 radial_segments = 8
 rings = 1
 
-[sub_resource type="SphereMesh" id=8]
+[sub_resource type="SphereMesh" id=5]
 material = ExtResource( 6 )
 radial_segments = 8
 rings = 4
@@ -54,7 +54,7 @@ script = ExtResource( 2 )
 [node name="FrustumRenderer" type="MeshInstance" parent="RasterCameraController/RasterCamera"]
 layers = 2
 material_override = ExtResource( 3 )
-mesh = SubResource( 9 )
+mesh = SubResource( 6 )
 material/0 = null
 script = ExtResource( 4 )
 
@@ -73,28 +73,28 @@ depth = 12.0
 "occluder",
 ]]
 transform = Transform( 0.707107, -0.707107, 0, 0.707107, 0.707107, 0, 0, 0, 1, -3.67971, 0, -3.53656 )
-mesh = SubResource( 5 )
+mesh = SubResource( 2 )
 material/0 = null
 
 [node name="PlaneMesh" type="MeshInstance" parent="Meshes" groups=[
 "occluder",
 ]]
 transform = Transform( 1, 0, 0, 0, 0.999999, 0, 0, 0, 1, 4.09044, -0.735656, -3.21968 )
-mesh = SubResource( 6 )
+mesh = SubResource( 3 )
 material/0 = null
 
 [node name="CylinderMesh" type="MeshInstance" parent="Meshes" groups=[
 "occluder",
 ]]
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -4 )
-mesh = SubResource( 7 )
+mesh = SubResource( 4 )
 material/0 = null
 
 [node name="Sphere" type="MeshInstance" parent="Meshes" groups=[
 "occluder",
 ]]
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0.218572, 0, -7.84628 )
-mesh = SubResource( 8 )
+mesh = SubResource( 5 )
 material/0 = null
 
 [node name="Control" type="Control" parent="."]
