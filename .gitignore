@@ -7,3 +7,5 @@
 *.exe
 *.lib
 *.exp
+
+raster/export
