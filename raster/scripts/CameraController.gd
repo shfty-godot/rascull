@@ -1,3 +1,4 @@
+class_name CameraController
 extends Spatial
 
 export(float) var move_speed = 5.0;
