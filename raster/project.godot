@@ -9,19 +9,25 @@
 config_version=4
 
 _global_script_classes=[ {
+"base": "Spatial",
+"class": "CameraController",
+"language": "GDScript",
+"path": "res://scripts/CameraController.gd"
+}, {
 "base": "MeshInstance",
 "class": "FrustumRenderer",
 "language": "GDScript",
 "path": "res://scripts/FrustumRenderer.gd"
 } ]
 _global_script_class_icons={
+"CameraController": "",
 "FrustumRenderer": ""
 }
 
 [application]
 
 config/name="Raster"
-run/main_scene="res://scenes/main.tscn"
+run/main_scene="res://scenes/test.tscn"
 config/icon="res://icon.png"
 
 [autoload]
