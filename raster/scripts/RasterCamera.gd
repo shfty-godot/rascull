@@ -45,6 +45,8 @@ func _ready() -> void:
 	var view_size = get_viewport().size
 	Raster.set_aspect(view_size.x / view_size.y)
 
+	Raster.simd_test()
+
 func _process(delta) -> void:
 	# Gather
 	var gather_start = OS.get_ticks_usec()

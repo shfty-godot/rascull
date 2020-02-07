@@ -5,6 +5,7 @@
 #include "vector.h"
 #include "matrix.h"
 #include "stdio.h"
+#include "vector_simd.h"
 
 #include <malloc.h>
 
@@ -422,4 +423,37 @@ godot_variant raster_depth_test(godot_object *p_instance, void *p_method_data,
 
     GODOT_VARIANT_NEW(bool, ret_var, success);
     return ret_var;
+}
+
+godot_variant raster_simd_test(godot_object *p_instance, void *p_method_data,
+                               void *p_user_data, int p_num_args, godot_variant **p_args)
+{
+    svec lhs = svec_new_4(1.0f, 2.0f, 3.0f, 4.0f);
+    svec rhs = svec_new_4(5.0f, 6.0f, 7.0f, 8.0f);
+
+    print_svec("lhs", lhs);
+    print_svec("rhs", rhs);
+
+    svec add_result = simd_add(lhs, rhs);
+    print_svec("simd add", add_result);
+
+    svec sub_result = simd_sub(lhs, rhs);
+    print_svec("simd sub", sub_result);
+
+    svec mul_result = simd_mul(lhs, rhs);
+    print_svec("simd mul", mul_result);
+
+    svec div_result = simd_div(lhs, rhs);
+    print_svec("simd div", div_result);
+
+    svec sqrt_result = simd_sqrt(lhs);
+    print_svec("simd sqrt lhs", sqrt_result);
+
+    float dot_result = simd_dot(lhs, rhs);
+    printf("simd dot: %f\n", dot_result);
+
+    svec cross_result = simd_cross(lhs, rhs);
+    print_svec("simd cross", cross_result);
+
+    RETURN_NULL_VARIANT();
 }
