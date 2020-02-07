@@ -60,72 +60,85 @@ func _process(delta) -> void:
 	# Gather
 	var gather_start = OS.get_ticks_msec()
 	var instance_ids: Array = gather_instance_ids()
-	var occluders: Array = gather_instances(instance_ids, funcref(self, "should_gather_occluder"))
-	var occludees: Array = gather_instances(instance_ids, funcref(self, "should_gather_occludee"))
-
-	var occluder_mesh_matrices_vertices: Array = get_instances_matrices_vertices(occluders)
-
-	var occluder_aabb_matrices_vertices: Array = get_instances_matrices_vertices(occluders, true)
-	var occludee_aabb_matrices_vertices: Array = get_instances_matrices_vertices(occludees, true)
-
+	var occluders: Array = gather_instances(instance_ids, "occluder")
+	var occludees: Array = gather_instances(instance_ids, "occludee")
 	var gather_time = OS.get_ticks_msec() - gather_start;
 
+	var gather_meshes_start = OS.get_ticks_msec()
+	var mesh_matrices_vertices: Array = get_instances_matrices_vertices(occluders)
+	var gather_meshes_time = OS.get_ticks_msec() - gather_meshes_start;
+
+	var gather_aabbs_start = OS.get_ticks_msec()
+	var aabb_matrices_vertices: Array = get_instances_matrices_aabbs(occluders + occludees)
+	var gather_aabbs_time = OS.get_ticks_msec() - gather_aabbs_start;
+
 	# Prepare matrices
-	var view_matrix = transform_to_matrix(global_transform)
-	var inv_view_matrix = transform_to_matrix(global_transform.inverse())
+	Raster.set_view_matrices(
+		transform_to_matrix(global_transform),
+		transform_to_matrix(global_transform.inverse())
+	)
 
 	# Rasterize
-	rasterize_objects(occluder_mesh_matrices_vertices, view_matrix, inv_view_matrix)
+	rasterize_objects(mesh_matrices_vertices)
 
 	# Cull
 	var cull_start = OS.get_ticks_msec()
-	cull_instances(occluder_aabb_matrices_vertices + occludee_aabb_matrices_vertices, view_matrix, inv_view_matrix)
+	cull_instances(aabb_matrices_vertices)
 	var cull_time = OS.get_ticks_msec() - cull_start;
 
-	Profiler.set_timestamp("Gather Objects", gather_time, "msec")
+	Profiler.set_timestamp("Gather Instances", gather_time, "msec")
+	Profiler.set_timestamp("Gather Occluder Meshes", gather_meshes_time, "msec")
+	Profiler.set_timestamp("Gather AABBs", gather_aabbs_time, "msec")
 	Profiler.set_timestamp("Cull Occluded Objects", cull_time, "msec")
 
 func gather_instance_ids() -> Array:
 	return VisualServer.instances_cull_convex(get_frustum(), get_world().get_scenario())
 
-func gather_instances(instance_ids: Array, gather_predicate: FuncRef) -> Array:
+func gather_instances(instance_ids: Array, group: String) -> Array:
 	var instances := []
 	for instance_id in instance_ids:
 		var instance: VisualInstance = instance_from_id(instance_id)
-		if gather_predicate.call_func(instance):
+		if instance.is_in_group(group):
 			instances.append(instance)
 
 	return instances
 
-func should_gather_occluder(instance: VisualInstance) -> bool:
-	return instance.is_in_group("occluder")
-
-func should_gather_occludee(instance: VisualInstance) -> bool:
-	return instance.is_in_group("occludee")
-
-func get_instances_matrices_vertices(objects, aabb = false) -> Array:
+func get_instances_matrices_vertices(objects) -> Array:
 	var object_matrices_vertices := []
 
 	for child in objects:
+		var trx = child.get_global_transform()
+
 		var matrices_vertices = [
 			child,
-			transform_to_matrix(child.global_transform),
-			transform_to_matrix(child.global_transform.inverse())
+			transform_to_matrix(trx),
+			transform_to_matrix(trx.inverse())
 		]
 
-		if aabb:
-			matrices_vertices.append(instance_aabb_to_triangles(child))
+		if child is MeshInstance:
+			matrices_vertices.append(get_meshinstance_vertices(child))
+		elif child is CSGShape:
+			matrices_vertices.append(get_csgshape_vertices(child))
 		else:
-			if child is MeshInstance:
-				matrices_vertices.append(get_meshinstance_vertices(child))
-			elif child is CSGShape:
-				matrices_vertices.append(get_csgshape_vertices(child))
-			else:
-				continue
+			continue
 
 		object_matrices_vertices.append(matrices_vertices)
 
 	return object_matrices_vertices
+
+func get_instances_matrices_aabbs(objects) -> Array:
+	var object_matrices_aabbs := []
+
+	for child in objects:
+		var trx = child.get_global_transform()
+		object_matrices_aabbs.append([
+			child,
+			transform_to_matrix(trx),
+			transform_to_matrix(trx.inverse()),
+			instance_aabb_to_triangles(child)
+		])
+
+	return object_matrices_aabbs
 
 func get_meshinstance_vertices(instance) -> Array:
 	return instance.get_mesh().get_faces()
@@ -135,6 +148,7 @@ func get_csgshape_vertices(instance) -> Array:
 
 func instance_aabb_to_triangles(instance: VisualInstance) -> PoolVector3Array:
 	var aabb = instance.get_aabb()
+
 	var endpoints = PoolVector3Array()
 	for i in range(0, 8):
 		endpoints.append(aabb.get_endpoint(i))
@@ -218,27 +232,27 @@ func transform_to_matrix(transform: Transform) -> PoolRealArray:
 		1
 	])
 
-func rasterize_objects(occluder_mesh_matrices_vertices, view_matrix, inv_view_matrix):
+func rasterize_objects(occluder_mesh_matrices_vertices):
 	var rasterize_start = OS.get_ticks_msec()
-	Raster.rasterize_objects(occluder_mesh_matrices_vertices, view_matrix, inv_view_matrix)
+	Raster.rasterize_objects(occluder_mesh_matrices_vertices)
 	var rasterize_time = OS.get_ticks_msec() - rasterize_start;
 	Profiler.set_timestamp("Rasterize Occluders", rasterize_time, "msec")
 
-func cull_instances(instances_matrices_vertices: Array, view_matrix: PoolRealArray, inv_view_matrix: PoolRealArray) -> void:
+func cull_instances(instances_matrices_vertices: Array) -> void:
 	var scene_tree = get_tree()
 
 	scene_tree.call_group_flags(SceneTree.GROUP_CALL_REALTIME, "occluder", "set_visible", false)
 	scene_tree.call_group_flags(SceneTree.GROUP_CALL_REALTIME, "occludee", "set_visible", false)
 
 	for instance_matrices_vertices in instances_matrices_vertices:
-		cull_instance(instance_matrices_vertices, view_matrix, inv_view_matrix)
+		cull_instance(instance_matrices_vertices)
 
-func cull_instance(instance_matrices_vertices: Array, view_matrix: PoolRealArray, inv_view_matrix: PoolRealArray) -> void:
+func cull_instance(instance_matrices_vertices: Array) -> void:
 	var instance = instance_matrices_vertices[0]
 
 	if instance.get_transformed_aabb().has_point(global_transform.origin):
 		instance.set_visible(true)
 		return
 
-	if Raster.depth_test([instance_matrices_vertices], view_matrix, inv_view_matrix):
+	if Raster.depth_test([instance_matrices_vertices]):
 		instance.set_visible(true)
