@@ -60,4 +60,7 @@ godot_variant raster_rasterize_objects(godot_object *p_instance, void *p_method_
 godot_variant raster_depth_test(godot_object *p_instance, void *p_method_data,
                                 void *p_user_data, int p_num_args, godot_variant **p_args);
 
+godot_variant raster_simd_test(godot_object *p_instance, void *p_method_data,
+                               void *p_user_data, int p_num_args, godot_variant **p_args);
+
 #endif
