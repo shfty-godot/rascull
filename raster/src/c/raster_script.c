@@ -10,33 +10,47 @@
 #include <malloc.h>
 
 // Utility Macros
-#define USER_DATA() \
+#define GD_USER_DATA() \
     user_data_struct *user_data = (user_data_struct *)p_user_data
 
-#define GODOT_NEW(type, name, ...) \
-    godot_##type name;             \
+#define GD_NEW(type, name, ...) \
+    godot_##type name;          \
     api->godot_##type##_new(&name, ##__VA_ARGS__)
 
-#define GODOT_VARIANT_NEW(type, name, ...) \
-    godot_variant name;                    \
+#define GD_VARIANT_NEW(type, name, ...) \
+    godot_variant name;                 \
     api->godot_variant_new_##type(&##name, ##__VA_ARGS__)
 
-#define GODOT_CAST_VARIANT(type, variant) \
+#define GD_CAST_VARIANT(type, variant) \
     api->godot_variant_as_##type##(variant)
 
-#define VARIANT_ARGV(type, name, idx) \
-    godot_##type name = GODOT_CAST_VARIANT(type, p_args[##idx])
+#define GD_VARIANT_ARGV(type, name, idx) \
+    godot_##type name = GD_CAST_VARIANT(type, p_args[##idx])
 
-#define GODOT_DESTROY(type, name) \
-    api->godot_##type##_destroy(&name)
+#define GD_ARRAY_GET(array, idx) \
+    api->godot_array_get(array, idx)
 
-#define RETURN_NULL_VARIANT() \
-    GODOT_VARIANT_NEW(nil, null_ret); \
+#define GD_POOL_ARRAY_GET(type, array, idx) \
+    api->godot_pool_##type##_array_get(array, idx)
+
+#define GD_ARRAY_SIZE(array) \
+    api->godot_array_size(array)
+
+#define GD_POOL_ARRAY_SIZE(type, array) \
+    api->godot_pool_##type##_array_size(array)
+
+#define GD_DESTROY(type, name) \
+    api->godot_##type##_destroy(name)
+
+#define GD_RETURN_NULL()           \
+    GD_VARIANT_NEW(nil, null_ret); \
     return null_ret
 
+mat4 view_mat;
+mat4 view_mat_inv;
+
 // Plugin implementation
-void *
-raster_constructor(godot_object *p_instance, void *p_method_data)
+void *raster_constructor(godot_object *p_instance, void *p_method_data)
 {
     user_data_struct *user_data = api->godot_alloc(sizeof(user_data_struct));
     user_data->depth_buffer = malloc(get_pixel_count() * sizeof(float));
@@ -46,7 +60,7 @@ raster_constructor(godot_object *p_instance, void *p_method_data)
 
 void raster_destructor(godot_object *p_instance, void *p_method_data, void *p_user_data)
 {
-    USER_DATA();
+    GD_USER_DATA();
 
     free(user_data->depth_buffer);
     api->godot_free(user_data);
@@ -55,85 +69,100 @@ void raster_destructor(godot_object *p_instance, void *p_method_data, void *p_us
 godot_variant raster_get_resolution(godot_object *p_instance, void *p_method_data,
                                     void *p_user_data, int p_num_args, godot_variant **p_args)
 {
-    GODOT_NEW(vector2, res, (float)resolution.x, (float)resolution.y);
-    GODOT_VARIANT_NEW(vector2, res_var, &res);
+    GD_NEW(vector2, res, (float)resolution.x, (float)resolution.y);
+    GD_VARIANT_NEW(vector2, res_var, &res);
     return res_var;
 }
 
 godot_variant raster_get_z_near(godot_object *p_instance, void *p_method_data,
                                 void *p_user_data, int p_num_args, godot_variant **p_args)
 {
-    GODOT_VARIANT_NEW(real, z_near_var, z_near);
+    GD_VARIANT_NEW(real, z_near_var, z_near);
     return z_near_var;
 }
 
 godot_variant raster_get_z_far(godot_object *p_instance, void *p_method_data,
                                void *p_user_data, int p_num_args, godot_variant **p_args)
 {
-    GODOT_VARIANT_NEW(real, z_far_var, z_far);
+    GD_VARIANT_NEW(real, z_far_var, z_far);
     return z_far_var;
 }
 
 godot_variant raster_set_resolution(godot_object *p_instance, void *p_method_data,
                                     void *p_user_data, int p_num_args, godot_variant **p_args)
 {
-    int x = (int)GODOT_CAST_VARIANT(int, p_args[0]);
-    int y = (int)GODOT_CAST_VARIANT(int, p_args[1]);
+    int x = (int)GD_CAST_VARIANT(int, p_args[0]);
+    int y = (int)GD_CAST_VARIANT(int, p_args[1]);
 
     set_resolution(p_user_data, x, y);
 
-    RETURN_NULL_VARIANT();
+    GD_RETURN_NULL();
 }
 
 godot_variant raster_set_flip_fov(godot_object *p_instance, void *p_method_data,
                                   void *p_user_data, int p_num_args, godot_variant **p_args)
 {
-    flip_aspect = GODOT_CAST_VARIANT(bool, p_args[0]);
+    flip_aspect = GD_CAST_VARIANT(bool, p_args[0]);
 
-    RETURN_NULL_VARIANT();
+    GD_RETURN_NULL();
 }
 
 godot_variant raster_set_fov(godot_object *p_instance, void *p_method_data,
                              void *p_user_data, int p_num_args, godot_variant **p_args)
 {
-    fov = (float)GODOT_CAST_VARIANT(real, p_args[0]);
+    fov = (float)GD_CAST_VARIANT(real, p_args[0]);
 
-    RETURN_NULL_VARIANT();
+    GD_RETURN_NULL();
 }
 
 godot_variant raster_set_aspect(godot_object *p_instance, void *p_method_data,
                                 void *p_user_data, int p_num_args, godot_variant **p_args)
 {
-    aspect = (float)GODOT_CAST_VARIANT(real, p_args[0]);
+    aspect = (float)GD_CAST_VARIANT(real, p_args[0]);
 
-    RETURN_NULL_VARIANT();
+    GD_RETURN_NULL();
 }
 
 godot_variant raster_set_z_near(godot_object *p_instance, void *p_method_data,
                                 void *p_user_data, int p_num_args, godot_variant **p_args)
 {
-    z_near = (float)GODOT_CAST_VARIANT(real, p_args[0]);
+    z_near = (float)GD_CAST_VARIANT(real, p_args[0]);
 
-    RETURN_NULL_VARIANT();
+    GD_RETURN_NULL();
 }
 
 godot_variant raster_set_z_far(godot_object *p_instance, void *p_method_data,
                                void *p_user_data, int p_num_args, godot_variant **p_args)
 {
-    z_far = (float)GODOT_CAST_VARIANT(real, p_args[0]);
+    z_far = (float)GD_CAST_VARIANT(real, p_args[0]);
 
-    RETURN_NULL_VARIANT();
+    GD_RETURN_NULL();
+}
+
+godot_variant raster_set_view_matrices(godot_object *p_instance, void *p_method_data,
+                                       void *p_user_data, int p_num_args, godot_variant **p_args)
+{
+    GD_VARIANT_ARGV(pool_real_array, g_view_mat, 0);
+    GD_VARIANT_ARGV(pool_real_array, g_view_mat_inv, 1);
+
+    view_mat = mat4_from_godot_pool_real_array(&g_view_mat);
+    view_mat_inv = mat4_from_godot_pool_real_array(&g_view_mat_inv);
+
+    GD_DESTROY(pool_real_array, &g_view_mat);
+    GD_DESTROY(pool_real_array, &g_view_mat_inv);
+
+    GD_RETURN_NULL();
 }
 
 godot_variant raster_get_depth(godot_object *p_instance, void *p_method_data,
                                void *p_user_data, int p_num_args, godot_variant **p_args)
 {
-    USER_DATA();
+    GD_USER_DATA();
 
-    int x = (int)GODOT_CAST_VARIANT(int, p_args[0]);
-    int y = (int)GODOT_CAST_VARIANT(int, p_args[0]);
+    int x = (int)GD_CAST_VARIANT(int, p_args[0]);
+    int y = (int)GD_CAST_VARIANT(int, p_args[0]);
 
-    GODOT_VARIANT_NEW(real, depth_var, user_data->depth_buffer[x + y * resolution.x]);
+    GD_VARIANT_NEW(real, depth_var, user_data->depth_buffer[x + y * resolution.x]);
 
     return depth_var;
 }
@@ -141,9 +170,9 @@ godot_variant raster_get_depth(godot_object *p_instance, void *p_method_data,
 godot_variant raster_get_depth_buffer(godot_object *p_instance, void *p_method_data,
                                       void *p_user_data, int p_num_args, godot_variant **p_args)
 {
-    USER_DATA();
+    GD_USER_DATA();
 
-    GODOT_NEW(pool_real_array, depth_buffer_array);
+    GD_NEW(pool_real_array, depth_buffer_array);
 
     api->godot_pool_real_array_resize(&depth_buffer_array, get_pixel_count());
 
@@ -152,8 +181,8 @@ godot_variant raster_get_depth_buffer(godot_object *p_instance, void *p_method_d
         api->godot_pool_real_array_set(&depth_buffer_array, i, user_data->depth_buffer[i]);
     }
 
-    GODOT_VARIANT_NEW(pool_real_array, depth_buffer_var, &depth_buffer_array);
-    GODOT_DESTROY(pool_real_array, depth_buffer_array);
+    GD_VARIANT_NEW(pool_real_array, depth_buffer_var, &depth_buffer_array);
+    GD_DESTROY(pool_real_array, &depth_buffer_array);
 
     return depth_buffer_var;
 }
@@ -161,35 +190,35 @@ godot_variant raster_get_depth_buffer(godot_object *p_instance, void *p_method_d
 godot_variant raster_clear_depth_buffer(godot_object *p_instance, void *p_method_data,
                                         void *p_user_data, int p_num_args, godot_variant **p_args)
 {
-    USER_DATA();
+    GD_USER_DATA();
 
     clear_depth_buffer(user_data);
 
-    RETURN_NULL_VARIANT();
+    GD_RETURN_NULL();
 }
 
 godot_variant raster_bresenham_line(godot_object *p_instance, void *p_method_data,
                                     void *p_user_data, int p_num_args, godot_variant **p_args)
 {
-    USER_DATA();
-    VARIANT_ARGV(vector3, gv0, 0);
-    VARIANT_ARGV(vector3, gv1, 1);
+    GD_USER_DATA();
+    GD_VARIANT_ARGV(vector3, gv0, 0);
+    GD_VARIANT_ARGV(vector3, gv1, 1);
 
     fvec3 v0 = fvec3_from_godot_vector3(&gv0);
     fvec3 v1 = fvec3_from_godot_vector3(&gv1);
 
     bresenham_line(p_user_data, NULL, NULL, v0, v1, false, NULL);
 
-    RETURN_NULL_VARIANT();
+    GD_RETURN_NULL();
 }
 
 godot_variant raster_bresenham_triangle(godot_object *p_instance, void *p_method_data,
                                         void *p_user_data, int p_num_args, godot_variant **p_args)
 {
-    USER_DATA();
-    VARIANT_ARGV(vector3, gv0, 0);
-    VARIANT_ARGV(vector3, gv1, 1);
-    VARIANT_ARGV(vector3, gv2, 2);
+    GD_USER_DATA();
+    GD_VARIANT_ARGV(vector3, gv0, 0);
+    GD_VARIANT_ARGV(vector3, gv1, 1);
+    GD_VARIANT_ARGV(vector3, gv2, 2);
 
     fvec3 v0 = fvec3_from_godot_vector3(&gv0);
     fvec3 v1 = fvec3_from_godot_vector3(&gv1);
@@ -197,49 +226,49 @@ godot_variant raster_bresenham_triangle(godot_object *p_instance, void *p_method
 
     bresenham_triangle(p_user_data, v0, v1, v2, false);
 
-    RETURN_NULL_VARIANT();
+    GD_RETURN_NULL();
 }
 
 godot_variant raster_bresenham_triangles(godot_object *p_instance, void *p_method_data,
                                          void *p_user_data, int p_num_args, godot_variant **p_args)
 {
-    USER_DATA();
-    VARIANT_ARGV(pool_vector3_array, triangle_pool, 0);
+    GD_USER_DATA();
+    GD_VARIANT_ARGV(pool_vector3_array, triangle_pool, 0);
 
-    int vertex_count = api->godot_pool_vector3_array_size(&triangle_pool);
+    int vertex_count = GD_POOL_ARRAY_SIZE(vector3, &triangle_pool);
     fvec3 *triangles = (fvec3 *)malloc(vertex_count * sizeof(fvec3));
 
     for (int i = 0; i < vertex_count; ++i)
     {
-        godot_vector3 gv = api->godot_pool_vector3_array_get(&triangle_pool, i);
+        godot_vector3 gv = GD_POOL_ARRAY_GET(vector3, &triangle_pool, i);
         triangles[i] = fvec3_from_godot_vector3(&gv);
     }
 
-    GODOT_DESTROY(pool_vector3_array, triangle_pool);
+    GD_DESTROY(pool_vector3_array, &triangle_pool);
 
     bresenham_triangles(p_user_data, triangles, vertex_count, false);
 
     free(triangles);
 
-    RETURN_NULL_VARIANT();
+    GD_RETURN_NULL();
 }
 
 godot_variant raster_rasterize_triangles(godot_object *p_instance, void *p_method_data,
                                          void *p_user_data, int p_num_args, godot_variant **p_args)
 {
-    USER_DATA();
-    VARIANT_ARGV(pool_vector3_array, triangle_pool, 0);
+    GD_USER_DATA();
+    GD_VARIANT_ARGV(pool_vector3_array, triangle_pool, 0);
 
-    int vertex_count = api->godot_pool_vector3_array_size(&triangle_pool);
+    int vertex_count = GD_POOL_ARRAY_SIZE(vector3, &triangle_pool);
     fvec3 *triangles = (fvec3 *)malloc(vertex_count * sizeof(fvec3));
 
     for (int i = 0; i < vertex_count; ++i)
     {
-        godot_vector3 gv = api->godot_pool_vector3_array_get(&triangle_pool, i);
+        godot_vector3 gv = GD_POOL_ARRAY_GET(vector3, &triangle_pool, i);
         triangles[i] = fvec3_from_godot_vector3(&gv);
     }
 
-    GODOT_DESTROY(pool_vector3_array, triangle_pool);
+    GD_DESTROY(pool_vector3_array, &triangle_pool);
 
     // Rasterize
     verts_to_clip_space(triangles, vertex_count);
@@ -250,70 +279,70 @@ godot_variant raster_rasterize_triangles(godot_object *p_instance, void *p_metho
 
     free(triangles);
 
-    RETURN_NULL_VARIANT();
+    GD_RETURN_NULL();
 }
 
-fvec3 *prepare_triangles(godot_array *p_matrices_triangles, mat4 view_mat, mat4 view_mat_inv, int *o_vertex_count)
+fvec3 *prepare_triangles(godot_array *p_matrices_triangles, int *o_vertex_count)
 {
     fvec3 *triangles = (fvec3 *)malloc(0);
 
     int vertex_count = *o_vertex_count;
 
     // Iterate over object matrices / triangles
-    for (int i = 0; i < api->godot_array_size(p_matrices_triangles); ++i)
+    for (int i = 0; i < GD_ARRAY_SIZE(p_matrices_triangles); ++i)
     {
         // Retrieve matrices / triangles array
-        godot_variant mo_var = api->godot_array_get(p_matrices_triangles, i);
-        godot_array mo = GODOT_CAST_VARIANT(array, &mo_var);
-        GODOT_DESTROY(variant, mo_var);
+        godot_variant mo_var = GD_ARRAY_GET(p_matrices_triangles, i);
+        godot_array mo = GD_CAST_VARIANT(array, &mo_var);
+        GD_DESTROY(variant, &mo_var);
 
         // Retrieve world matrix
-        godot_variant mat_var = api->godot_array_get(&mo, 1);
-        godot_pool_real_array g_mat = GODOT_CAST_VARIANT(pool_real_array, &mat_var);
-        GODOT_DESTROY(variant, mat_var);
+        godot_variant mat_var = GD_ARRAY_GET(&mo, 1);
+        godot_pool_real_array g_mat = GD_CAST_VARIANT(pool_real_array, &mat_var);
+        GD_DESTROY(variant, &mat_var);
 
         // Retrieve inverse world matrix
-        godot_variant mat_inv_var = api->godot_array_get(&mo, 2);
-        godot_pool_real_array g_mat_inv = GODOT_CAST_VARIANT(pool_real_array, &mat_inv_var);
-        GODOT_DESTROY(variant, mat_inv_var);
+        godot_variant mat_inv_var = GD_ARRAY_GET(&mo, 2);
+        godot_pool_real_array g_mat_inv = GD_CAST_VARIANT(pool_real_array, &mat_inv_var);
+        GD_DESTROY(variant, &mat_inv_var);
 
         // Retrieve triangles
-        godot_variant tris_var = api->godot_array_get(&mo, 3);
-        godot_pool_vector3_array obj_tris = GODOT_CAST_VARIANT(pool_vector3_array, &tris_var);
-        GODOT_DESTROY(variant, tris_var);
+        godot_variant tris_var = GD_ARRAY_GET(&mo, 3);
+        godot_pool_vector3_array obj_tris = GD_CAST_VARIANT(pool_vector3_array, &tris_var);
+        GD_DESTROY(variant, &tris_var);
 
-        GODOT_DESTROY(array, mo);
+        GD_DESTROY(array, &mo);
 
         // Convert world matrix
         mat4 mat;
-        for (int mi = 0; mi < api->godot_pool_real_array_size(&g_mat); ++mi)
+        for (int mi = 0; mi < GD_POOL_ARRAY_SIZE(real, &g_mat); ++mi)
         {
-            float v = api->godot_pool_real_array_get(&g_mat, mi);
+            float v = GD_POOL_ARRAY_GET(real, &g_mat, mi);
             mat.m[mi] = v;
         }
 
-        GODOT_DESTROY(pool_real_array, g_mat);
+        GD_DESTROY(pool_real_array, &g_mat);
 
         // Convert inverse world matrix
         mat4 mat_inv;
-        for (int mi = 0; mi < api->godot_pool_real_array_size(&g_mat_inv); ++mi)
+        for (int mi = 0; mi < GD_POOL_ARRAY_SIZE(real, &g_mat_inv); ++mi)
         {
-            float v = api->godot_pool_real_array_get(&g_mat_inv, mi);
+            float v = GD_POOL_ARRAY_GET(real, &g_mat_inv, mi);
             mat_inv.m[mi] = v;
         }
 
-        GODOT_DESTROY(pool_real_array, g_mat_inv);
+        GD_DESTROY(pool_real_array, &g_mat_inv);
 
         // Convert triangles
-        int obj_vert_count = api->godot_pool_vector3_array_size(&obj_tris);
+        int obj_vert_count = GD_POOL_ARRAY_SIZE(vector3, &obj_tris);
 
         triangles = realloc(triangles, (vertex_count + obj_vert_count) * sizeof(fvec3));
 
         for (int i = 0; i < obj_vert_count; i += 3)
         {
-            godot_vector3 gv0 = api->godot_pool_vector3_array_get(&obj_tris, i);
-            godot_vector3 gv1 = api->godot_pool_vector3_array_get(&obj_tris, i + 1);
-            godot_vector3 gv2 = api->godot_pool_vector3_array_get(&obj_tris, i + 2);
+            godot_vector3 gv0 = GD_POOL_ARRAY_GET(vector3, &obj_tris, i);
+            godot_vector3 gv1 = GD_POOL_ARRAY_GET(vector3, &obj_tris, i + 1);
+            godot_vector3 gv2 = GD_POOL_ARRAY_GET(vector3, &obj_tris, i + 2);
 
             fvec3 v0 = fvec3_from_godot_vector3(&gv0);
             fvec3 v1 = fvec3_from_godot_vector3(&gv1);
@@ -349,7 +378,7 @@ fvec3 *prepare_triangles(godot_array *p_matrices_triangles, mat4 view_mat, mat4 
             }
         }
 
-        GODOT_DESTROY(pool_vector3_array, obj_tris);
+        GD_DESTROY(pool_vector3_array, &obj_tris);
     }
 
     triangles = realloc(triangles, vertex_count * sizeof(fvec3));
@@ -370,21 +399,13 @@ godot_variant raster_rasterize_objects(godot_object *p_instance, void *p_method_
     clear_depth_buffer(p_user_data);
 
     // Retrieve parameters
-    VARIANT_ARGV(array, matrices_triangles, 0);
-    VARIANT_ARGV(pool_real_array, g_view_mat, 1);
-    VARIANT_ARGV(pool_real_array, g_view_mat_inv, 2);
-
-    mat4 view_mat = mat4_from_godot_pool_real_array(&g_view_mat);
-    mat4 view_mat_inv = mat4_from_godot_pool_real_array(&g_view_mat_inv);
-
-    GODOT_DESTROY(pool_real_array, g_view_mat);
-    GODOT_DESTROY(pool_real_array, g_view_mat_inv);
+    GD_VARIANT_ARGV(array, matrices_triangles, 0);
 
     // Prepare triangles
     int vert_count = 0;
-    fvec3 *triangles = prepare_triangles(&matrices_triangles, view_mat, view_mat_inv, &vert_count);
+    fvec3 *triangles = prepare_triangles(&matrices_triangles, &vert_count);
 
-    GODOT_DESTROY(array, matrices_triangles);
+    GD_DESTROY(array, &matrices_triangles);
 
     // Rasterize
     bresenham_triangles(p_user_data, triangles, vert_count, false);
@@ -392,28 +413,20 @@ godot_variant raster_rasterize_objects(godot_object *p_instance, void *p_method_
     // Cleanup
     free(triangles);
 
-    RETURN_NULL_VARIANT();
+    GD_RETURN_NULL();
 }
 
 godot_variant raster_depth_test(godot_object *p_instance, void *p_method_data,
                                 void *p_user_data, int p_num_args, godot_variant **p_args)
 {
     // Retrieve parameters
-    VARIANT_ARGV(array, matrices_triangles, 0);
-    VARIANT_ARGV(pool_real_array, g_view_mat, 1);
-    VARIANT_ARGV(pool_real_array, g_view_mat_inv, 2);
-
-    mat4 view_mat = mat4_from_godot_pool_real_array(&g_view_mat);
-    mat4 view_mat_inv = mat4_from_godot_pool_real_array(&g_view_mat_inv);
-
-    GODOT_DESTROY(pool_real_array, g_view_mat);
-    GODOT_DESTROY(pool_real_array, g_view_mat_inv);
+    GD_VARIANT_ARGV(array, matrices_triangles, 0);
 
     // Prepare triangles
     int vert_count = 0;
-    fvec3 *triangles = prepare_triangles(&matrices_triangles, view_mat, view_mat_inv, &vert_count);
+    fvec3 *triangles = prepare_triangles(&matrices_triangles, &vert_count);
 
-    GODOT_DESTROY(array, matrices_triangles);
+    GD_DESTROY(array, &matrices_triangles);
 
     // Rasterize
     bool success = bresenham_triangles(p_user_data, triangles, vert_count, true);
@@ -421,7 +434,7 @@ godot_variant raster_depth_test(godot_object *p_instance, void *p_method_data,
     // Cleanup
     free(triangles);
 
-    GODOT_VARIANT_NEW(bool, ret_var, success);
+    GD_VARIANT_NEW(bool, ret_var, success);
     return ret_var;
 }
 
@@ -455,5 +468,5 @@ godot_variant raster_simd_test(godot_object *p_instance, void *p_method_data,
     svec cross_result = simd_cross(lhs, rhs);
     print_svec("simd cross", cross_result);
 
-    RETURN_NULL_VARIANT();
+    GD_RETURN_NULL();
 }
