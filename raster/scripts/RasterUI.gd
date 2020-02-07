@@ -1,9 +1,17 @@
 extends Control
 
+signal update_changed(update)
+signal visualize_changed(visualize)
 signal fov_changed(fov)
 signal z_near_changed(z_near)
 signal z_far_changed(z_far)
 signal keep_aspect_changed(horizontal)
+
+func set_update(update):
+	emit_signal("update_changed", update)
+
+func set_visualize(visualize) -> void:
+	emit_signal("visualize_changed", visualize)
 
 func set_fov(fov):
 	emit_signal("fov_changed", fov)
