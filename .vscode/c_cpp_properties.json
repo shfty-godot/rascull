@@ -15,7 +15,7 @@
             "includePath": [
                 "${default}",
                 "${workspaceFolder}/godot_headers",
-                "${workspaceFolder}/raster/src/h"
+                "${workspaceFolder}/rascull/src/h"
             ]
         }
     ],

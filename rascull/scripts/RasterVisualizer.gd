@@ -26,13 +26,13 @@ func render():
 	if not is_visible_in_tree():
 		return
 
-	var z_near = Raster.get_z_near()
-	var near_far_inv = 1.0 / (Raster.get_z_far() - z_near)
+	var z_near = RasCull.get_z_near()
+	var near_far_inv = 1.0 / (RasCull.get_z_far() - z_near)
 
-	var res  = Raster.get_resolution()
+	var res  = RasCull.get_resolution()
 
 	var depth_buffer = PoolByteArray()
-	for depth in Raster.get_depth_buffer():
+	for depth in RasCull.get_depth_buffer():
 		var norm_depth = (depth - z_near) * near_far_inv
 		var inv_depth = 1.0 - norm_depth
 		depth_buffer.append(inv_depth * 255.0)

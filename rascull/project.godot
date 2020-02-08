@@ -26,14 +26,20 @@ _global_script_class_icons={
 
 [application]
 
-config/name="Raster"
+config/name="RasCull"
+config/description="Example project for the RasCull plugin."
 run/main_scene="res://scenes/test.tscn"
 config/icon="res://icon.png"
 
 [autoload]
 
-Raster="*res://bin/raster.gdns"
+RasCull="*res://bin/rascull.gdns"
 Profiler="*res://scripts/Profiler.gd"
+
+[display]
+
+window/size/width=1280
+window/size/height=800
 
 [rendering]
 

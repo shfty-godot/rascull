@@ -11,8 +11,8 @@ opts.Add(EnumVariable('target', "Compilation target", 'debug', ['d', 'debug', 'r
 opts.Add(EnumVariable('platform', "Compilation platform", '', ['', 'windows', 'x11', 'linux', 'osx']))
 opts.Add(EnumVariable('p', "Compilation target, alias for 'platform'", '', ['', 'windows', 'x11', 'linux', 'osx']))
 opts.Add(BoolVariable('use_llvm', "Use the LLVM / Clang compiler", 'no'))
-opts.Add(PathVariable('target_path', 'The path where the lib is installed.', 'raster/bin/'))
-opts.Add(PathVariable('target_name', 'The library name.', 'libraster', PathVariable.PathAccept))
+opts.Add(PathVariable('target_path', 'The path where the lib is installed.', 'rascull/bin/'))
+opts.Add(PathVariable('target_name', 'The library name.', 'librascull', PathVariable.PathAccept))
 
 # Local dependency paths, adapt them to your setup
 godot_headers_path = "godot_headers/"
@@ -70,9 +70,9 @@ env.Append(CPPPATH=['.', godot_headers_path])
 env['PDB'] = env['target_path'] + env['target_name'] + '.pdb'
 
 # tweak this if you want to use different folders, or more folders, to store your source code in.
-env.Append(CPPPATH=['raster/src/h'])
-env.VariantDir("raster/src/obj", "raster/src/c", duplicate=0)
-sources = Glob('raster/src/obj/*.c')
+env.Append(CPPPATH=['rascull/src/h'])
+env.VariantDir("rascull/src/obj", "rascull/src/c", duplicate=0)
+sources = Glob('rascull/src/obj/*.c')
 library = env.SharedLibrary(target=env['target_path'] + env['target_name'] , source=sources)
 
 Default(library)

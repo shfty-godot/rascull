@@ -103,6 +103,9 @@ margin_left = 10.0
 margin_top = 10.0
 margin_right = -10.0
 margin_bottom = -10.0
+__meta__ = {
+"_edit_use_anchors_": false
+}
 
 [node name="Viewport" type="Viewport" parent="UI/FirstPersonPanel/ViewportContainer"]
 size = Vector2( 492, 280 )
@@ -127,10 +130,9 @@ script = ExtResource( 6 )
 [node name="CameraMesh" parent="UI/FirstPersonPanel/ViewportContainer/Viewport/Controller/RasterCamera" instance=ExtResource( 7 )]
 
 [node name="ThirdPersonPanel" type="Panel" parent="UI"]
-anchor_left = 1.0
+anchor_left = 0.5
 anchor_right = 1.0
-margin_left = -512.0
-margin_bottom = 300.0
+anchor_bottom = 0.5
 
 [node name="ViewportContainer" type="ViewportContainer" parent="UI/ThirdPersonPanel"]
 anchor_right = 1.0
@@ -154,7 +156,6 @@ anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 1.0
 margin_left = 0.857361
-margin_right = 30.0
 __meta__ = {
 "_edit_use_anchors_": false
 }
@@ -174,7 +175,6 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 1.0
 anchor_bottom = 1.0
-margin_left = 30.0
 __meta__ = {
 "_edit_use_anchors_": false
 }
@@ -184,8 +184,8 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 
 [node name="CameraPanel" type="Panel" parent="UI/SettingsPanel/VBoxContainer"]
-margin_right = 482.0
-margin_bottom = 148.0
+margin_right = 640.0
+margin_bottom = 198.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
 
@@ -328,9 +328,9 @@ margin_bottom = 24.0
 pressed = true
 
 [node name="ProfilerLabel" type="Label" parent="UI/SettingsPanel/VBoxContainer"]
-margin_top = 152.0
-margin_right = 482.0
-margin_bottom = 300.0
+margin_top = 202.0
+margin_right = 640.0
+margin_bottom = 400.0
 size_flags_vertical = 3
 script = ExtResource( 9 )
 [connection signal="fov_changed" from="UI" to="UI/FirstPersonPanel/ViewportContainer/Viewport/Controller/RasterCamera" method="set_fov"]

@@ -8,7 +8,7 @@
     godot_instance_method name = {NULL, NULL, NULL};                                         \
     name##.method = &function;                                                               \
                                                                                              \
-    nativescript_api->godot_nativescript_register_method(p_handle, "Raster", #name, \
+    nativescript_api->godot_nativescript_register_method(p_handle, "RasCull", #name, \
                                                          attributes, name);
 
 void GDN_EXPORT godot_gdnative_init(godot_gdnative_init_options *p_options)
@@ -48,7 +48,7 @@ void GDN_EXPORT godot_nativescript_init(void *p_handle)
     destroy.destroy_func = &raster_destructor;
 
     // Register class
-    nativescript_api->godot_nativescript_register_class(p_handle, "Raster", "Node",
+    nativescript_api->godot_nativescript_register_class(p_handle, "RasCull", "Node",
                                                         create, destroy);
 
     // Register methods

@@ -8,29 +8,29 @@ export(int) var raster_y_resolution = 128 setget set_raster_y_resolution
 func set_raster_x_resolution(new_raster_x_resolution):
 	if new_raster_x_resolution != raster_x_resolution:
 		raster_x_resolution = new_raster_x_resolution
-		Raster.set_resolution(raster_x_resolution, raster_y_resolution)
+		RasCull.set_resolution(raster_x_resolution, raster_y_resolution)
 
 func set_raster_y_resolution(new_raster_y_resolution):
 	if new_raster_y_resolution != raster_y_resolution:
 		raster_y_resolution = new_raster_y_resolution
-		Raster.set_resolution(raster_x_resolution, raster_y_resolution)
+		RasCull.set_resolution(raster_x_resolution, raster_y_resolution)
 
 func set_keep_aspect_mode(new_keep_aspect_mode) -> void:
 	.set_keep_aspect_mode(new_keep_aspect_mode)
 	print("set_keep_aspect_mode: ", new_keep_aspect_mode)
-	Raster.set_flip_fov(new_keep_aspect_mode == Camera.KEEP_WIDTH)
+	RasCull.set_flip_fov(new_keep_aspect_mode == Camera.KEEP_WIDTH)
 
 func set_fov(new_fov) -> void:
 	.set_fov(new_fov)
-	Raster.set_fov(new_fov)
+	RasCull.set_fov(new_fov)
 
 func set_znear(new_znear) -> void:
 	.set_znear(new_znear)
-	Raster.set_z_near(new_znear)
+	RasCull.set_z_near(new_znear)
 
 func set_zfar(new_zfar) -> void:
 	.set_zfar(new_zfar)
-	Raster.set_z_far(new_zfar)
+	RasCull.set_z_far(new_zfar)
 
 func set_update(new_update) -> void:
 	if update != new_update:
@@ -38,18 +38,18 @@ func set_update(new_update) -> void:
 
 func viewport_size_changed() -> void:
 	var view_size = get_viewport().size
-	Raster.set_aspect(view_size.x / view_size.y)
+	RasCull.set_aspect(view_size.x / view_size.y)
 
 func _ready() -> void:
 	get_viewport().connect("size_changed", self, "viewport_size_changed")
-	Raster.set_resolution(raster_x_resolution, raster_y_resolution);
-	Raster.set_flip_fov(get_keep_aspect_mode() == Camera.KEEP_WIDTH)
-	Raster.set_fov(get_fov())
-	Raster.set_z_near(get_znear())
-	Raster.set_z_far(get_zfar())
+	RasCull.set_resolution(raster_x_resolution, raster_y_resolution);
+	RasCull.set_flip_fov(get_keep_aspect_mode() == Camera.KEEP_WIDTH)
+	RasCull.set_fov(get_fov())
+	RasCull.set_z_near(get_znear())
+	RasCull.set_z_far(get_zfar())
 
 	var view_size = get_viewport().size
-	Raster.set_aspect(view_size.x / view_size.y)
+	RasCull.set_aspect(view_size.x / view_size.y)
 
 func _process(delta) -> void:
 	if not update:
@@ -71,7 +71,7 @@ func _process(delta) -> void:
 	var gather_aabbs_time = OS.get_ticks_msec() - gather_aabbs_start;
 
 	# Prepare matrices
-	Raster.set_view_matrices(
+	RasCull.set_view_matrices(
 		transform_to_matrix(global_transform),
 		transform_to_matrix(global_transform.inverse())
 	)
@@ -232,7 +232,7 @@ func transform_to_matrix(transform: Transform) -> PoolRealArray:
 
 func rasterize_objects(occluder_mesh_matrices_vertices):
 	var rasterize_start = OS.get_ticks_msec()
-	Raster.rasterize_objects(occluder_mesh_matrices_vertices)
+	RasCull.rasterize_objects(occluder_mesh_matrices_vertices)
 	var rasterize_time = OS.get_ticks_msec() - rasterize_start;
 	Profiler.set_timestamp("Rasterize Occluders", rasterize_time, "msec")
 
@@ -252,5 +252,5 @@ func cull_instance(instance_matrices_vertices: Array) -> void:
 		instance.set_visible(true)
 		return
 
-	if Raster.depth_test([instance_matrices_vertices]):
+	if RasCull.depth_test([instance_matrices_vertices]):
 		instance.set_visible(true)
