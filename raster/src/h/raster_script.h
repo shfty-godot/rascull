@@ -29,7 +29,5 @@ GODOT_DECLARE_FUNCTION(raster_bresenham_triangles);
 GODOT_DECLARE_FUNCTION(raster_rasterize_triangles);
 GODOT_DECLARE_FUNCTION(raster_rasterize_objects);
 GODOT_DECLARE_FUNCTION(raster_depth_test);
-GODOT_DECLARE_FUNCTION(raster_depth_test_objects);
-GODOT_DECLARE_FUNCTION(raster_simd_test);
 
 #endif

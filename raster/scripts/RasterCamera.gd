@@ -51,8 +51,6 @@ func _ready() -> void:
 	var view_size = get_viewport().size
 	Raster.set_aspect(view_size.x / view_size.y)
 
-	Raster.simd_test()
-
 func _process(delta) -> void:
 	if not update:
 		return

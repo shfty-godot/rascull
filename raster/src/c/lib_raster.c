@@ -73,5 +73,4 @@ void GDN_EXPORT godot_nativescript_init(void *p_handle)
     REGISTER_METHOD(rasterize_triangles, raster_rasterize_triangles)
     REGISTER_METHOD(rasterize_objects, raster_rasterize_objects)
     REGISTER_METHOD(depth_test, raster_depth_test)
-    REGISTER_METHOD(simd_test, raster_simd_test)
 }
